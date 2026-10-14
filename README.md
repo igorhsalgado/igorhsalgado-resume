@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-    <b>Portfólio de Igor Hermann Salgado, desenvolvedor backend (Go, Java e PostgreSQL). Site estático gerado em Go, sem Node e sem JavaScript no navegador.</b>
+    <b>Portfólio de Igor Hermann Salgado, desenvolvedor backend (Go, Java e PostgreSQL). Site estático gerado em Go (só biblioteca padrão), sem Node e sem JavaScript no navegador.</b>
 </p>
 
 <p align="center">
@@ -24,8 +24,9 @@
 
 <h2 id="tech">💻 Tecnologias</h2>
 
-- [Go](https://go.dev) com `html/template` (templates embutidos no binário)
-- CSS puro
+- [Go](https://go.dev) 1.27.2, só biblioteca padrão (sem dependências externas)
+- `html/template`, com os templates embutidos no binário
+- CSS puro e fontes IBM Plex (licença OFL) servidas pelo próprio site
 - API do GitHub (consultada só durante o build)
 - GitHub Actions + GitHub Pages
 
@@ -33,7 +34,7 @@
 
 <h3>Pré-requisitos</h3>
 
-- [Go](https://go.dev/dl/) (versão definida no `go.mod`)
+- [Go](https://go.dev/dl/) 1.27.2 ou mais recente (versão definida no `go.mod`)
 - [Git](https://git-scm.com)
 
 <h3>Clonando</h3>
@@ -46,62 +47,69 @@ cd igorhsalgado-resume
 <h3>Rodando</h3>
 
 ```bash
-# servidor local em http://localhost:8080/
-go run ./cmd/site -serve :8080
-
-# gera o site estático em dist/, com o mesmo base e domínio do GitHub Pages
-go run ./cmd/site -out dist -base /igorhsalgado-resume -site https://igorhsalgado.github.io
-
-# testes
-go test ./...
+go run ./cmd/site -serve :8080   # gera dist/ e serve em http://localhost:8080/igorhsalgado-resume/
+go run ./cmd/site                # só gera o site em dist/
+go test ./...                    # testes
 ```
 
-Flags de `cmd/site`:
+Flags de `cmd/site` (todas opcionais):
 
-| Flag | Para que serve |
-| --- | --- |
-| `-out` | Pasta de saída do site estático (ex.: `dist`). |
-| `-base` | Caminho base dos links (`/igorhsalgado-resume` no GitHub Pages). |
-| `-site` | Domínio do site (`https://igorhsalgado.github.io`). |
-| `-serve` | Endereço para servir o site localmente (ex.: `:8080`). |
+| Flag | Padrão | Para que serve |
+| --- | --- | --- |
+| `-out` | `dist` | Diretório de saída, apagado e recriado a cada build. |
+| `-base` | `/igorhsalgado-resume` | Caminho base onde o site é publicado. |
+| `-site` | `https://igorhsalgado.github.io` | Origem do site, usada no canonical e no `og:url`. |
+| `-serve` | (vazio) | Depois do build, serve o site neste endereço (ex.: `:8080`). |
 
-Opcional: defina `GITHUB_TOKEN` no ambiente para aumentar o limite de requisições à API do GitHub durante o build. Sem ele o build funciona do mesmo jeito.
+Opcional: defina `GITHUB_TOKEN` no ambiente para aumentar o limite de requisições à API do GitHub. Sem ele o build funciona do mesmo jeito.
 
 <h3>Onde fica o conteúdo</h3>
 
-Todo o texto do site sai de dois arquivos JSON, lidos por `internal/content`. Não é preciso mexer nos templates para atualizar o conteúdo:
+Todo o texto do site sai de dois arquivos JSON, lidos e validados por `internal/content`. Não é preciso mexer no código para atualizar o conteúdo:
 
 | Arquivo | O que tem |
 | --- | --- |
-| `data/profile.json` | Nome, título, pitch, localização, texto do "Sobre", experiência, formação, grupos da stack e contatos. |
-| `data/projects.json` | Lista de projetos com o repositório no GitHub (`dono/nome`), título, descrição, tags e status. |
+| `data/profile.json` | Nome, handle, título, pitch, localização, "Sobre", experiência, formação, grupos da stack e contatos. |
+| `data/projects.json` | Projetos: `slug`, `repo` (`dono/nome` no GitHub), `title`, `description`, `tags`, `meta` e, opcionalmente, `status` (`"em-desenvolvimento"`) e `showStars` (`false` esconde as estrelas). |
 
-- **Foto:** por padrão é o avatar do GitHub (`igorhsalgado`). Para usar outra, adicione `static/foto.jpg` (quadrada, 1:1); a foto local sempre vence o avatar.
-- **Currículo em PDF:** o botão "Baixar CV" só aparece se existir `static/cv.pdf` no momento do build.
-- **Dados do GitHub:** `internal/github` consulta a API para cada projeto. Se a consulta falhar (sem rede, limite de taxa, repositório privado), o build continua e o card apenas omite esses campos.
+O build para com uma mensagem clara se faltar um campo obrigatório, se houver um campo desconhecido (um erro de digitação, por exemplo), se um `slug` não for só letras minúsculas, números e hífens ou estiver repetido, se `repo` não estiver no formato `dono/nome` ou se `status` tiver outro valor. Sem `status`, o projeto é tratado como concluído e o badge não aparece.
+
+<h3>Foto e currículo</h3>
+
+Tudo o que está em `static/` é copiado como está para o site.
+
+- **Foto:** por padrão é o avatar do GitHub (`igorhsalgado`), baixado a cada build em 144 px e 288 px. Para usar outra, adicione `static/foto.jpg` (também vale `.jpeg`, `.png` ou `.webp`): a foto local sempre vence o avatar. Ela não é redimensionada no build, então use uma imagem **quadrada**, de 288 × 288 px ou mais, e leve. Se nenhuma das duas estiver disponível, a página sai sem foto.
+- **Currículo:** os botões de CV só aparecem se existir `static/cv.pdf`.
+
+<h3>Dados do GitHub</h3>
+
+Durante o build, `internal/github` consulta `https://api.github.com/repos/{repo}` para cada projeto e usa `pushed_at`, `stargazers_count`, `html_url` e `homepage`. O navegador do visitante nunca chama a API. Se a consulta falhar (sem rede, limite de taxa, repositório privado), o build segue com um aviso no log e o card mostra só o que está no JSON.
+
+<h3>Deploy</h3>
+
+O workflow `.github/workflows/deploy.yml` gera o site com `go run ./cmd/site -out dist` e publica no GitHub Pages:
+
+- a cada push na branch `main`;
+- todo dia às 06:00 UTC (`cron: '0 6 * * *'`), para atualizar os cards e a foto;
+- manualmente, em **Actions → Deploy (GitHub Pages) → Run workflow**.
+
+Pull requests passam pelo `.github/workflows/ci.yml`: `gofmt -l .`, `go vet ./...`, `go test -race ./...` e build.
+
+Configuração necessária (uma vez só): **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 <h3>Estrutura</h3>
 
 ```text
-cmd/site/          ponto de entrada (build estático e servidor local)
-internal/content/  leitura de data/profile.json e data/projects.json
-internal/github/   dados da API do GitHub (com fallback) e avatar
-internal/site/     templates html/template embutidos
-data/              conteúdo do site (JSON)
-static/            CSS, fontes IBM Plex, favicon (e foto.jpg / cv.pdf opcionais)
+.github/workflows/  ci.yml (checagens em PRs) e deploy.yml (GitHub Pages)
+cmd/site/           main.go: flags, build e servidor local
+data/               profile.json e projects.json (conteúdo)
+internal/content/   tipos, leitura e validação de data/*.json
+internal/github/    cliente da API do GitHub (github.go) e avatar (avatar.go)
+internal/site/      build.go, page.go, photo.go, render.go e templates/ (HTML embutido)
+static/             style.css, favicon.svg e fonts/ (IBM Plex em woff2 + OFL.txt);
+                    opcionalmente foto.jpg e cv.pdf
+go.mod
 ```
-
-<h3>Deploy</h3>
-
-O deploy é feito por GitHub Actions no GitHub Pages:
-
-- a cada push na branch `main`;
-- uma vez por dia, às 06:00 UTC (atualiza último push e estrelas dos cards);
-- manualmente, em **Actions → Run workflow**.
-
-Pull requests passam pelo CI, que roda `gofmt`, `go vet`, `go test` e o build.
-
-Configuração necessária (uma vez só): **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 <h2 id="colab">🤝 Colaboradores</h2>
 
@@ -122,7 +130,7 @@ Configuração necessária (uma vez só): **Settings → Pages → Build and dep
 
 1. `git clone https://github.com/igorhsalgado/igorhsalgado-resume.git`
 2. `git checkout -b feat/NOME`
-3. Rode `gofmt -l .`, `go vet ./...` e `go test ./...` antes de commitar
+3. Rode `gofmt -l .`, `go vet ./...` e `go test -race ./...` antes de commitar (são as mesmas checagens do CI)
 4. Abra um Pull Request explicando o que mudou; se houver mudança visual, inclua um print
 
 <h3>Documentações que podem ajudar</h3>
