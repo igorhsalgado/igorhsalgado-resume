@@ -54,6 +54,9 @@ func Build(ctx context.Context, cfg Config) error {
 		cfg.Now = time.Now()
 	}
 
+	if err := checkOutDir(cfg); err != nil {
+		return err
+	}
 	c, err := content.Load(cfg.DataDir)
 	if err != nil {
 		return err
@@ -115,29 +118,46 @@ func Build(ctx context.Context, cfg Config) error {
 	return os.WriteFile(filepath.Join(cfg.OutDir, "index.html"), html.Bytes(), 0o644)
 }
 
-// resetDir apaga e recria dir. Recusa o diretório atual e os que estão acima
-// dele, para um -out errado não apagar o projeto.
-func resetDir(dir string) error {
-	abs, err := filepath.Abs(dir)
-	if err != nil {
-		return err
-	}
+// checkOutDir recusa um OutDir que se sobreponha ao diretório atual, a
+// StaticDir ou a DataDir: como OutDir é apagado a cada build, um -out errado
+// (".", "static", "data/x"...) apagaria o projeto ou o próprio conteúdo.
+// OutDir pode ficar dentro do diretório atual (dist), mas não o contrário.
+func checkOutDir(cfg Config) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	if rel, err := filepath.Rel(abs, wd); err == nil && !escapes(rel) {
-		return fmt.Errorf("diretório de saída %q contém o diretório atual; use um subdiretório como dist", dir)
+	if within(wd, cfg.OutDir) {
+		return fmt.Errorf("diretório de saída %q contém o diretório atual; use um subdiretório como dist", cfg.OutDir)
 	}
-	if err := os.RemoveAll(abs); err != nil {
-		return err
+	for _, dir := range []string{cfg.StaticDir, cfg.DataDir} {
+		if within(cfg.OutDir, dir) || within(dir, cfg.OutDir) {
+			return fmt.Errorf("diretório de saída %q se sobrepõe a %q; use um diretório separado como dist", cfg.OutDir, dir)
+		}
 	}
-	return os.MkdirAll(abs, 0o755)
+	return nil
 }
 
-// escapes informa se o caminho relativo rel sai do diretório de referência.
-func escapes(rel string) bool {
-	return rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator))
+// within informa se o caminho a é igual a b ou fica dentro de b.
+func within(a, b string) bool {
+	absA, err := filepath.Abs(a)
+	if err != nil {
+		return false
+	}
+	absB, err := filepath.Abs(b)
+	if err != nil {
+		return false
+	}
+	rel, err := filepath.Rel(absB, absA)
+	return err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+// resetDir apaga e recria dir. Quem chama já conferiu dir com checkOutDir.
+func resetDir(dir string) error {
+	if err := os.RemoveAll(dir); err != nil {
+		return err
+	}
+	return os.MkdirAll(dir, 0o755)
 }
 
 func fileExists(path string) bool {

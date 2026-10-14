@@ -346,10 +346,34 @@ func TestFormatDate(t *testing.T) {
 	}
 }
 
-func TestResetDirRefusesWorkingDir(t *testing.T) {
-	for _, dir := range []string{".", "..", "/"} {
-		if err := resetDir(dir); err == nil {
-			t.Errorf("resetDir(%q) deveria recusar", dir)
+func TestCheckOutDir(t *testing.T) {
+	cfg := Config{DataDir: "data", StaticDir: "static"}
+	refused := []string{".", "..", "/", "", "static", "static/", "./static", "static/dist", "data", "data/x"}
+	for _, out := range refused {
+		cfg.OutDir = out
+		if err := checkOutDir(cfg); err == nil {
+			t.Errorf("checkOutDir(%q) deveria recusar", out)
+		}
+	}
+	for _, out := range []string{"dist", "../dist", "staticx", t.TempDir()} {
+		cfg.OutDir = out
+		if err := checkOutDir(cfg); err != nil {
+			t.Errorf("checkOutDir(%q): %v", out, err)
+		}
+	}
+}
+
+// Um -out que aponta para static/ falha antes de apagar qualquer coisa.
+func TestBuildRefusesOutDirOverStatic(t *testing.T) {
+	for _, sub := range []string{"", "dist"} {
+		static := newStatic(t, "foto.jpg")
+		cfg, _ := testConfig(t, fullGitHub(), static)
+		cfg.OutDir = filepath.Join(static, sub)
+		if err := Build(context.Background(), cfg); err == nil {
+			t.Errorf("Build com OutDir %q deveria falhar", cfg.OutDir)
+		}
+		if !fileExists(filepath.Join(static, "foto.jpg")) {
+			t.Errorf("OutDir %q: foto.jpg foi apagada", cfg.OutDir)
 		}
 	}
 }
