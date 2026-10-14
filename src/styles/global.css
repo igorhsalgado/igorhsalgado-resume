@@ -8,6 +8,10 @@
  * Paleta neutra (cinzas) com um único destaque âmbar, usado só no caractere
  * `$` dos prompts, nos links de texto e no botão principal. Badges, chips,
  * tags, bordas e botões secundários ficam em cinza.
+ * Texto em dois tons só, por função:
+ *   --text: nome, títulos, comandos dos prompts, parágrafos, listas, chips;
+ *   --text-muted: tudo o que é secundário (cargo, local, navegação, ./,
+ *   rótulos, tags, status, metadados, empresa e período, rodapé).
  * Contraste mínimo de texto: 4.5:1 sobre --surface.
  */
 :root {
@@ -17,7 +21,6 @@
   --border: #474e55;
   --text: #e2e5e8;
   --text-muted: #a2a9b0; /* 6.7:1 sobre --surface */
-  --text-subtle: #838b92; /* 4.6:1 sobre --surface: $, ./, rótulos */
   --accent: #f2b54a; /* âmbar: $, links, botão principal. 8.8:1 sobre --surface */
   --accent-hover: #f6c97a; /* hover do botão principal */
   --on-accent: #1a1d20; /* texto sobre âmbar: 9.3:1 */
@@ -33,7 +36,6 @@
   --color-border: var(--border);
   --color-text: var(--text);
   --color-text-muted: var(--text-muted);
-  --color-text-subtle: var(--text-subtle);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-on-accent: var(--on-accent);
