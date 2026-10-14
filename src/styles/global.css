@@ -74,8 +74,6 @@
 
   body {
     margin: 0;
-    background-color: var(--bg);
-    color: var(--text);
     font-family: var(--font-sans);
     font-size: var(--text-base);
     line-height: var(--text-base--line-height);
@@ -116,13 +114,32 @@
   }
 }
 
+/*
+ * Cor do texto e fundo da página fora de @layer, de propósito. CSS sem camada
+ * vence qualquer CSS em camada, então um `body { color }` injetado por quem
+ * hospeda a página (ex.: um visualizador embutido em tema claro) ganharia do
+ * `@layer base` e todo texto sem classe de cor herdaria preto. `:root` e
+ * `:root body` também vencem `html`/`body` simples por especificidade, seja
+ * qual for a ordem das folhas de estilo.
+ * Só html e body: regras de cor em elementos (p, li...) aqui fora venceriam os
+ * utilitários (text-text-muted etc.), que vivem em @layer utilities.
+ */
+:root,
+:root body {
+  color: var(--text);
+  background-color: var(--bg);
+}
+
 @layer components {
-  /* Moldura da página: um bloco com borda sobre o fundo, como no wireframe. */
+  /* Moldura da página: um bloco com borda sobre o fundo, como no wireframe.
+     A cor declarada aqui (e não só herdada do body) protege o conteúdo
+     mesmo se o body receber outra cor. */
   .page {
     width: calc(100% - 2 * max(16px, env(safe-area-inset-left, 0px)));
     max-width: var(--container-page);
     margin: 1.5rem auto 3.5rem;
     background: var(--surface);
+    color: var(--text);
     border: 1px solid var(--border);
   }
 
