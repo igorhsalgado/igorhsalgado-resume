@@ -43,7 +43,7 @@ type Experience struct {
 type Education struct {
 	Course      string `json:"course"`
 	Institution string `json:"institution"`
-	Detail      string `json:"detail,omitempty"`
+	Detail      string `json:"detail"`
 }
 
 // StackGroup é uma linha da seção "Stack".
@@ -51,7 +51,7 @@ type StackGroup struct {
 	Label string   `json:"label"`
 	Items []string `json:"items"`
 	// Secondary marca o grupo de menor peso visual ("Também uso").
-	Secondary bool `json:"secondary,omitempty"`
+	Secondary bool `json:"secondary"`
 }
 
 // Contact guarda os canais de contato.
@@ -88,9 +88,9 @@ type Project struct {
 	Tags        []string `json:"tags"`
 	// Meta são linhas fixas de contexto (ex.: "equipe de 3").
 	Meta   []string `json:"meta"`
-	Status Status   `json:"status,omitempty"`
+	Status Status   `json:"status"`
 	// ShowStars controla as estrelas do GitHub no card (padrão: true).
-	ShowStars *bool `json:"showStars,omitempty"`
+	ShowStars *bool `json:"showStars"`
 }
 
 // StarsEnabled informa se o card pode exibir as estrelas do GitHub.
