@@ -5,7 +5,8 @@
     "title": "Smart Booking",
     "description": "Plataforma multi-tenant de agendamentos com notificações via Telegram.",
     "tags": ["Go", "React", "PostgreSQL", "Telegram"],
-    "meta": ["equipe de 3"]
+    "meta": ["equipe de 3"],
+    "status": "em-desenvolvimento"
   },
   {
     "slug": "market-faesa",
