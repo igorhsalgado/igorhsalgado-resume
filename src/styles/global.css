@@ -1,36 +1,38 @@
 @import "tailwindcss";
 
 /*
- * Tokens do design system v1.
+ * Tokens visuais, baseados na variante escura do wireframe v5.
  * O site é só escuro: todo visitante recebe esta paleta, independente da
  * preferência de tema do sistema. `color-scheme: dark` mantém barras de
  * rolagem e controles nativos no tema escuro.
+ * Paleta neutra (cinzas): o destaque vem de peso, borda e preenchimento,
+ * não de cor. Contraste mínimo de texto: 4.5:1 sobre --surface.
  */
 :root {
-  --bg: #0e1116;
-  --surface: #151a21;
-  --border: #2b323c;
-  --text: #e7eaee;
-  --text-muted: #9ba5b1;
-  --accent: #f2b54a;
-  --accent-muted: #2e2512;
-  --on-accent: #0e1116;
-  --success: #5cc98a;
-  --focus: #ffcf7a;
+  --bg: #16191c; /* fundo da página, em volta da moldura */
+  --surface: #1e2226; /* moldura da página (fundo do conteúdo) */
+  --box: #2a2f34; /* preenchimento: chips da stack, foto, links sociais */
+  --border: #474e55;
+  --text: #e2e5e8;
+  --text-muted: #a2a9b0; /* 6.7:1 sobre --surface */
+  --text-subtle: #838b92; /* 4.6:1 sobre --surface: $, ./, rótulos */
+  --accent: #cfd3d7; /* botão sólido */
+  --on-accent: #1a1d20;
+  --focus: #e2e5e8;
   color-scheme: dark;
 }
 
-/* Utilitários do Tailwind (bg-surface, text-accent...) apontam para as variáveis acima. */
+/* Utilitários do Tailwind (bg-surface, text-text-muted...) apontam para as variáveis acima. */
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-box: var(--box);
   --color-border: var(--border);
   --color-text: var(--text);
   --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
   --color-accent: var(--accent);
-  --color-accent-muted: var(--accent-muted);
   --color-on-accent: var(--on-accent);
-  --color-success: var(--success);
   --color-focus: var(--focus);
 }
 
@@ -38,24 +40,24 @@
   --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
-  --text-xs: 0.8125rem;
-  --text-xs--line-height: 1.25rem;
-  --text-sm: 0.9375rem;
-  --text-sm--line-height: 1.5rem;
-  --text-base: 1.0625rem;
-  --text-base--line-height: 1.75rem;
-  --text-lg: 1.3125rem;
-  --text-lg--line-height: 1.875rem;
-  --text-xl: 1.75rem;
-  --text-xl--line-height: 2.25rem;
-  --text-2xl: 2.5rem;
-  --text-2xl--line-height: 3rem;
+  /* Escala do wireframe: 12 / 13 / 15 / 17 / 22 / 28–40px. */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.55;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.55;
+  --text-md: 1.0625rem;
+  --text-md--line-height: 1.55;
+  --text-lg: 1.375rem;
+  --text-lg--line-height: 1.25;
+  --text-hero: clamp(1.75rem, 4vw, 2.5rem);
+  --text-hero--line-height: 1.15;
 
-  --container-content: 1080px;
-  --container-measure: 68ch;
-
-  --radius-md: 6px;
-  --radius-sm: 4px;
+  --container-page: 1040px;
+  --container-measure: 65ch;
+  --container-pitch: 52ch;
+  --container-list: 70ch;
 }
 
 @layer base {
@@ -85,9 +87,9 @@
     color: var(--on-accent);
   }
 
-  /* Links: accent só no que é clicável. */
+  /* Links na cor do texto, sempre sublinhados. */
   a {
-    color: var(--accent);
+    color: inherit;
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
@@ -96,11 +98,10 @@
     text-decoration-thickness: 2px;
   }
 
-  /* Anel de foco sempre visível. */
+  /* Anel de foco sempre visível (tracejado, como no wireframe). */
   :focus-visible {
-    outline: 2px solid var(--focus);
+    outline: 2px dashed var(--focus);
     outline-offset: 3px;
-    border-radius: 2px;
   }
 
   /* Âncoras não ficam coladas no topo da janela. */
@@ -110,52 +111,94 @@
 }
 
 @layer components {
-  .wrap {
-    width: 100%;
-    max-width: calc(var(--container-content) + 2 * 32px);
-    margin-inline: auto;
-    padding-left: max(16px, env(safe-area-inset-left, 0px));
-    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  /* Moldura da página: um bloco com borda sobre o fundo, como no wireframe. */
+  .page {
+    width: calc(100% - 2 * max(16px, env(safe-area-inset-left, 0px)));
+    max-width: var(--container-page);
+    margin: 1.5rem auto 3.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
   }
-  @media (min-width: 768px) {
-    .wrap {
-      padding-left: max(32px, env(safe-area-inset-left, 0px));
-      padding-right: max(32px, env(safe-area-inset-right, 0px));
+
+  /* Faixas internas da moldura (nav, seções, rodapé); as linhas entre elas vão de ponta a ponta. */
+  .band {
+    padding: 2.25rem 1.5rem;
+  }
+  .band-tight {
+    padding-block: 1rem;
+  }
+  @media (max-width: 760px) {
+    .band {
+      padding: 1.5rem 1rem;
     }
+    .band-tight {
+      padding-block: 0.75rem;
+    }
+  }
+
+  /* Prompt de terminal que abre cada seção. */
+  .prompt {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--text);
+  }
+  .prompt .ps {
+    color: var(--text-subtle);
+    margin-right: 0.5ch;
   }
 
   .btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-family: var(--font-sans);
+    gap: 0.5rem;
+    font-family: var(--font-mono);
     font-size: var(--text-sm);
-    line-height: 1;
-    font-weight: 500;
-    padding: 12px 18px;
-    border-radius: var(--radius-md);
-    border: 1px solid transparent;
+    line-height: var(--text-sm--line-height);
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--text);
+    color: var(--text);
+    background: transparent;
     text-decoration: none;
     transition:
       background-color 0.15s ease,
       border-color 0.15s ease,
       color 0.15s ease;
   }
+  .btn:hover {
+    background: var(--box);
+  }
   .btn-primary {
     background: var(--accent);
+    border-color: var(--accent);
     color: var(--on-accent);
   }
   .btn-primary:hover {
-    background: color-mix(in srgb, var(--accent) 88%, var(--text));
+    background: var(--text);
+    border-color: var(--text);
   }
-  .btn-secondary {
-    background: transparent;
-    color: var(--text);
+  /* Links secundários (GitHub, LinkedIn): bloco preenchido, peso menor. */
+  .btn-box {
     border-color: var(--border);
+    background: var(--box);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    min-height: 2.25rem;
+    padding-inline: 0.75rem;
   }
-  .btn-secondary:hover {
+  .btn-box:hover {
+    color: var(--text);
     border-color: var(--text-muted);
-    background: var(--surface);
+    background: var(--box);
+  }
+  .btn-small {
+    padding: 0.25rem 0.75rem;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
   }
 
   .tag {
@@ -165,31 +208,89 @@
     font-size: var(--text-xs);
     line-height: var(--text-xs--line-height);
     color: var(--text-muted);
-    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 1px 8px;
+    padding: 0 0.5rem;
     white-space: nowrap;
-    text-transform: lowercase;
-  }
-  .tag-secondary {
-    background: transparent;
-    border-style: dashed;
   }
 
+  /* Chips da stack: preenchidos; o grupo secundário fica tracejado e sem fundo. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: var(--text);
+    background: var(--box);
+    border: 1px solid var(--border);
+    padding: 0 0.5rem;
+    white-space: nowrap;
+  }
+  .chip-secondary {
+    background: transparent;
+    border-style: dashed;
+    color: var(--text-muted);
+  }
+
+  /* Badge de status ("em desenvolvimento"): tracejado = em construção. */
   .status {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.375rem;
+    justify-self: start;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     line-height: var(--text-xs--line-height);
-    color: var(--success);
-    background: color-mix(in srgb, var(--success) 10%, transparent);
-    border: 1px solid color-mix(in srgb, var(--success) 35%, transparent);
-    border-radius: 999px;
-    padding: 1px 10px;
+    color: var(--text-muted);
+    border: 1px dashed var(--border);
+    padding: 0 0.5rem;
     white-space: nowrap;
+  }
+
+  /* Hero: texto + foto opcional à direita; no celular a foto sobe para cima do nome. */
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .hero-grid.has-photo {
+    grid-template-columns: minmax(0, 1fr) 9rem;
+  }
+  .hero-photo {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: var(--box);
+    border: 1px solid var(--border);
+  }
+  @media (max-width: 760px) {
+    .hero-grid.has-photo {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hero-photo {
+      width: 6rem;
+      order: -1;
+    }
+  }
+
+  /* Stack: rótulo à esquerda, chips à direita; empilha em telas estreitas. */
+  .stack-list {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0.75rem 1.5rem;
+    margin: 0;
+  }
+  @media (max-width: 420px) {
+    .stack-list {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.25rem 0;
+    }
+    .stack-list dd {
+      margin-bottom: 0.75rem;
+    }
   }
 }
 
