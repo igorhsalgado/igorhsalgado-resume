@@ -11,22 +11,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup Node
-        uses: actions/setup-node@v7
+      - name: Setup Go
+        uses: actions/setup-go@v7
         with:
-          node-version: 22
-          cache: npm
+          go-version-file: go.mod
+          cache: true
+          # Sem dependências externas não há go.sum; o cache usa o go.mod.
+          cache-dependency-path: go.mod
 
-      - name: Instalar dependências
-        run: npm ci
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "Arquivos fora do gofmt:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        run: go test -race ./...
 
       - name: Build
-        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: go run ./cmd/site -out dist

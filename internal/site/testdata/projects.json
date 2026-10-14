@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "com-dados",
+    "repo": "exemplo/com-dados",
+    "title": "Com Dados",
+    "description": "Projeto com todos os dados do GitHub.",
+    "tags": ["Go", "PostgreSQL"],
+    "meta": ["equipe de 3"],
+    "status": "em-desenvolvimento"
+  },
+  {
+    "slug": "sem-estrelas",
+    "repo": "exemplo/sem-estrelas",
+    "title": "Sem Estrelas",
+    "description": "Projeto que esconde as estrelas.",
+    "tags": ["Java"],
+    "meta": ["projeto em equipe", "minha parte: backend"],
+    "showStars": false
+  }
+]

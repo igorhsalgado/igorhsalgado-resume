@@ -1,0 +1,158 @@
+// Package github busca, durante o build, os dados públicos que o site mostra:
+// metadados de repositórios (último push, estrelas, links) e o avatar do
+// usuário. O navegador do visitante nunca fala com a API.
+//
+// Os métodos devolvem erro em qualquer falha (rede, timeout, HTTP de erro,
+// JSON inesperado). Quem chama decide o fallback; o build registra um aviso e
+// segue sem os dados.
+package github
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
+	"github.com/igorhsalgado/igorhsalgado-resume/internal/validate"
+)
+
+const (
+	// DefaultAPIURL é a raiz da API REST do GitHub.
+	DefaultAPIURL = "https://api.github.com"
+	// DefaultAvatarURL é o host que serve os avatares (redimensionados no servidor).
+	DefaultAvatarURL = "https://avatars.githubusercontent.com"
+	// DefaultTimeout limita cada requisição do cliente HTTP padrão.
+	DefaultTimeout = 8 * time.Second
+
+	userAgent    = "igorhsalgado-resume-build"
+	maxJSONBytes = 1 << 20
+)
+
+// Client fala com a API do GitHub. No valor zero, os campos vazios usam os
+// endereços padrão e um cliente HTTP com DefaultTimeout. O ctx de cada
+// chamada também limita a requisição.
+type Client struct {
+	APIURL    string
+	AvatarURL string
+	// Token é opcional; com ele o limite de requisições da API é maior.
+	Token string
+	HTTP  *http.Client
+}
+
+// defaultHTTP é o cliente usado quando Client.HTTP é nil.
+var defaultHTTP = &http.Client{Timeout: DefaultTimeout}
+
+// NewClient devolve um cliente com os endereços padrão e um cliente HTTP
+// com DefaultTimeout.
+func NewClient(token string) *Client {
+	return &Client{
+		APIURL:    DefaultAPIURL,
+		AvatarURL: DefaultAvatarURL,
+		Token:     token,
+		HTTP:      &http.Client{Timeout: DefaultTimeout},
+	}
+}
+
+// do envia req pelo cliente HTTP configurado, ou pelo padrão.
+func (c *Client) do(req *http.Request) (*http.Response, error) {
+	if c.HTTP != nil {
+		return c.HTTP.Do(req)
+	}
+	return defaultHTTP.Do(req)
+}
+
+// orDefault devolve s, ou def quando s é vazio.
+func orDefault(s, def string) string {
+	if s == "" {
+		return def
+	}
+	return s
+}
+
+// Repo são os campos de um repositório usados nos cards de projeto.
+// Campos ausentes ou inválidos na resposta ficam com o valor zero.
+type Repo struct {
+	PushedAt time.Time
+	Stars    int
+	HTMLURL  string
+	Homepage string
+}
+
+// StatusError é uma resposta HTTP fora da faixa 2xx.
+type StatusError struct {
+	StatusCode int
+	// RateLimited indica que o limite de requisições da API acabou.
+	RateLimited bool
+}
+
+func (e *StatusError) Error() string {
+	if e.RateLimited {
+		return fmt.Sprintf("HTTP %d (limite de requisições da API atingido)", e.StatusCode)
+	}
+	return fmt.Sprintf("HTTP %d", e.StatusCode)
+}
+
+// ErrInvalidRepo é devolvido quando o nome do repositório não é "dono/nome".
+var ErrInvalidRepo = errors.New("nome de repositório inválido")
+
+// Repo busca os metadados públicos de um repositório ("dono/nome").
+func (c *Client) Repo(ctx context.Context, name string) (Repo, error) {
+	if !validate.RepoName(name) {
+		return Repo{}, fmt.Errorf("%w: %q", ErrInvalidRepo, name)
+	}
+	owner, repoName, _ := strings.Cut(name, "/")
+	endpoint := orDefault(c.APIURL, DefaultAPIURL) + "/repos/" + url.PathEscape(owner) + "/" + url.PathEscape(repoName)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return Repo{}, err
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+	req.Header.Set("User-Agent", userAgent)
+	if c.Token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.Token)
+	}
+
+	resp, err := c.do(req)
+	if err != nil {
+		return Repo{}, err
+	}
+	defer resp.Body.Close()
+	if err := checkStatus(resp); err != nil {
+		return Repo{}, err
+	}
+
+	var body struct {
+		PushedAt        string `json:"pushed_at"`
+		StargazersCount int    `json:"stargazers_count"`
+		HTMLURL         string `json:"html_url"`
+		Homepage        string `json:"homepage"`
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, maxJSONBytes)).Decode(&body); err != nil {
+		return Repo{}, fmt.Errorf("resposta inválida: %w", err)
+	}
+
+	repo := Repo{Stars: max(body.StargazersCount, 0)}
+	// Links que não sejam http(s) (javascript:, data:...) são descartados.
+	repo.HTMLURL, _ = validate.HTTPURL(body.HTMLURL)
+	repo.Homepage, _ = validate.HTTPURL(body.Homepage)
+	if t, err := time.Parse(time.RFC3339, body.PushedAt); err == nil {
+		repo.PushedAt = t
+	}
+	return repo, nil
+}
+
+func checkStatus(resp *http.Response) error {
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil
+	}
+	limited := (resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests) &&
+		resp.Header.Get("X-RateLimit-Remaining") == "0"
+	return &StatusError{StatusCode: resp.StatusCode, RateLimited: limited}
+}
