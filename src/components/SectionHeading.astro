@@ -1,0 +1,19 @@
+---
+// Cabeçalho de seção: prompt de terminal decorativo (aria-hidden) + título real em sans.
+interface Props {
+  id: string;
+  command: string;
+  title: string;
+  level?: 'h1' | 'h2';
+}
+
+const { id, command, title, level = 'h2' } = Astro.props;
+const Tag = level;
+---
+
+<Tag id={id} class="grid gap-1">
+  <span class="font-mono text-sm font-normal text-text-muted" aria-hidden="true"
+    ><span class="mr-[0.6ch] text-accent">$</span>{command}</span
+  >
+  <span class="text-xl font-semibold tracking-[-0.01em] text-text">{title}</span>
+</Tag>
