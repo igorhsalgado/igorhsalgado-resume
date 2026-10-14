@@ -46,6 +46,8 @@ type Config struct {
 
 // Build gera o site em cfg.OutDir. Falhas da API do GitHub não interrompem
 // o build: viram avisos no log e a página sai sem os dados automáticos.
+// Já um ctx cancelado (Ctrl+C) interrompe: Build devolve ctx.Err() e não
+// grava index.html.
 func Build(ctx context.Context, cfg Config) error {
 	if cfg.Logger == nil {
 		cfg.Logger = slog.Default()
@@ -56,6 +58,9 @@ func Build(ctx context.Context, cfg Config) error {
 
 	if err := checkOutDir(cfg); err != nil {
 		return err
+	}
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("build interrompido: %w", err)
 	}
 	c, err := content.Load(cfg.DataDir)
 	if err != nil {
@@ -106,6 +111,11 @@ func Build(ctx context.Context, cfg Config) error {
 		page.Photo = resolvePhoto(ctx, cfg, paths)
 	})
 	wg.Wait()
+	// Com ctx cancelado as buscas falham como se o GitHub estivesse fora do
+	// ar; gravar a página assim deixaria um site incompleto com sucesso.
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("build interrompido: %w", err)
+	}
 
 	for i, p := range c.Projects {
 		page.Projects = append(page.Projects, NewCard(p, repos[i]))

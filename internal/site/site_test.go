@@ -230,6 +230,46 @@ func TestBuildInvalidContent(t *testing.T) {
 	}
 }
 
+// Um build cancelado (Ctrl+C) falha em vez de gerar o site sem os dados do GitHub.
+func TestBuildCanceled(t *testing.T) {
+	for _, when := range []string{"antes", "durante"} {
+		t.Run(when, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			gh := &cancelingGitHub{fakeGitHub: fullGitHub()}
+			if when == "antes" {
+				cancel()
+			} else {
+				gh.cancel = cancel
+			}
+			cfg, _ := testConfig(t, gh, newStatic(t))
+			err := Build(ctx, cfg)
+			if !errors.Is(err, context.Canceled) {
+				t.Fatalf("Build err = %v, want context.Canceled", err)
+			}
+			if fileExists(filepath.Join(cfg.OutDir, "index.html")) {
+				t.Error("index.html não deveria ser gravado num build cancelado")
+			}
+		})
+	}
+}
+
+// cancelingGitHub cancela o build na primeira busca de repositório.
+type cancelingGitHub struct {
+	*fakeGitHub
+	cancel context.CancelFunc
+}
+
+func (g *cancelingGitHub) Repo(ctx context.Context, name string) (github.Repo, error) {
+	if g.cancel != nil {
+		g.cancel()
+	}
+	if err := ctx.Err(); err != nil {
+		return github.Repo{}, err
+	}
+	return g.fakeGitHub.Repo(ctx, name)
+}
+
 func TestResolvePhoto(t *testing.T) {
 	tests := []struct {
 		name      string
