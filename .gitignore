@@ -2,6 +2,9 @@
 dist/
 .astro/
 
+# avatar do GitHub, baixado a cada build
+src/assets/github-avatar.*
+
 # dependencies
 node_modules/
 

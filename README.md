@@ -7,7 +7,7 @@ Site estático feito com [Astro](https://astro.build) e [Tailwind CSS](https://t
 
 - Tema escuro em tons de cinza (baseado no wireframe aprovado), fontes IBM Plex Sans e IBM Plex Mono (servidas pelo próprio site via `@fontsource`).
 - Nenhum JavaScript é enviado ao navegador: a página é HTML + CSS.
-- Os cards de projeto mostram dados do GitHub (último push e estrelas) buscados **no build**.
+- Os cards de projeto mostram dados do GitHub (último push e estrelas) e a foto do topo é o avatar do GitHub, tudo buscado **no build**.
 
 ## Como rodar
 
@@ -40,10 +40,14 @@ O botão "Baixar CV" só aparece se existir o arquivo `public/cv.pdf` no momento
 
 ### Foto
 
-A foto do topo da página só aparece se existir o arquivo `src/assets/foto.jpg` no momento do build (também vale `foto.png`, `foto.jpeg` ou `foto.webp`; use só um deles). Basta adicionar o arquivo nesse caminho e publicar (commit + push na `main`). Sem o arquivo, o texto do topo ocupa a largura toda.
+A foto do topo vem do **avatar do GitHub** (usuário `igorhsalgado`, id `145609906`). Ela é baixada de `https://avatars.githubusercontent.com/u/145609906` no início de cada build, então acompanha a foto do GitHub sozinha a cada rebuild (push na `main`, agendamento diário ou execução manual). O download é feito por `integrations/github-avatar.mjs` e salvo em `src/assets/github-avatar.jpg`, que fica fora do git.
+
+Para usar outra foto no lugar do avatar, adicione `src/assets/foto.jpg` (também vale `foto.png`, `foto.jpeg` ou `foto.webp`; use só um deles) e publique: **a foto local sempre vence o avatar**. Para voltar ao avatar, apague o arquivo.
+
+O build nunca falha por causa da foto: se o avatar não puder ser baixado (sem rede, erro HTTP, timeout ou resposta que não seja imagem), o build segue com a foto local, ou com um avatar baixado antes, ou sem foto (nesse caso o texto do topo ocupa a largura toda).
 
 - Formato: **quadrado (1:1)**. Fotos em outra proporção são recortadas pelo centro.
-- Tamanho recomendado: **600 × 600 px** ou mais (o mínimo útil é 288 × 288 px).
+- Tamanho recomendado para a foto local: **600 × 600 px** ou mais (o mínimo útil é 288 × 288 px).
 - No build, o Astro redimensiona a imagem (144 px e 288 px, para telas comuns e de alta densidade) e converte para WebP; o arquivo original não é publicado.
 - No computador a foto fica à direita do nome; no celular, acima dele.
 
@@ -80,6 +84,7 @@ src/
   lib/          leitura do conteúdo, API do GitHub e helpers de caminho
   pages/        index.astro (página inicial)
   styles/       global.css (tokens do design system + Tailwind)
-  assets/       foto.jpg (foto do topo, quando existir)
+  assets/       foto.jpg opcional (vence o avatar) e github-avatar.jpg (baixado no build)
 public/         favicon.svg (e cv.pdf, quando existir)
+integrations/   github-avatar.mjs (baixa o avatar do GitHub no build)
 ```
