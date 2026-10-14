@@ -26,32 +26,52 @@ const (
 	DefaultAPIURL = "https://api.github.com"
 	// DefaultAvatarURL é o host que serve os avatares (redimensionados no servidor).
 	DefaultAvatarURL = "https://avatars.githubusercontent.com"
-	// DefaultTimeout limita cada requisição.
+	// DefaultTimeout limita cada requisição do cliente HTTP padrão.
 	DefaultTimeout = 8 * time.Second
 
 	userAgent    = "igorhsalgado-resume-build"
 	maxJSONBytes = 1 << 20
 )
 
-// Client fala com a API do GitHub. O valor zero não é utilizável; use NewClient.
+// Client fala com a API do GitHub. No valor zero, os campos vazios usam os
+// endereços padrão e um cliente HTTP com DefaultTimeout. O ctx de cada
+// chamada também limita a requisição.
 type Client struct {
 	APIURL    string
 	AvatarURL string
 	// Token é opcional; com ele o limite de requisições da API é maior.
-	Token   string
-	Timeout time.Duration
-	HTTP    *http.Client
+	Token string
+	HTTP  *http.Client
 }
 
-// NewClient devolve um cliente com os endereços e o timeout padrão.
+// defaultHTTP é o cliente usado quando Client.HTTP é nil.
+var defaultHTTP = &http.Client{Timeout: DefaultTimeout}
+
+// NewClient devolve um cliente com os endereços padrão e um cliente HTTP
+// com DefaultTimeout.
 func NewClient(token string) *Client {
 	return &Client{
 		APIURL:    DefaultAPIURL,
 		AvatarURL: DefaultAvatarURL,
 		Token:     token,
-		Timeout:   DefaultTimeout,
-		HTTP:      http.DefaultClient,
+		HTTP:      &http.Client{Timeout: DefaultTimeout},
 	}
+}
+
+// do envia req pelo cliente HTTP configurado, ou pelo padrão.
+func (c *Client) do(req *http.Request) (*http.Response, error) {
+	if c.HTTP != nil {
+		return c.HTTP.Do(req)
+	}
+	return defaultHTTP.Do(req)
+}
+
+// orDefault devolve s, ou def quando s é vazio.
+func orDefault(s, def string) string {
+	if s == "" {
+		return def
+	}
+	return s
 }
 
 // Repo são os campos de um repositório usados nos cards de projeto.
@@ -86,10 +106,7 @@ func (c *Client) Repo(ctx context.Context, name string) (Repo, error) {
 		return Repo{}, fmt.Errorf("%w: %q", ErrInvalidRepo, name)
 	}
 	owner, repoName, _ := strings.Cut(name, "/")
-	endpoint := c.APIURL + "/repos/" + url.PathEscape(owner) + "/" + url.PathEscape(repoName)
-
-	ctx, cancel := context.WithTimeout(ctx, c.Timeout)
-	defer cancel()
+	endpoint := orDefault(c.APIURL, DefaultAPIURL) + "/repos/" + url.PathEscape(owner) + "/" + url.PathEscape(repoName)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -102,7 +119,7 @@ func (c *Client) Repo(ctx context.Context, name string) (Repo, error) {
 		req.Header.Set("Authorization", "Bearer "+c.Token)
 	}
 
-	resp, err := c.HTTP.Do(req)
+	resp, err := c.do(req)
 	if err != nil {
 		return Repo{}, err
 	}

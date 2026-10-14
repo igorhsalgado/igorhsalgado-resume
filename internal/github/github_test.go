@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -141,8 +142,9 @@ func TestRepoErrors(t *testing.T) {
 				}
 			},
 			check: func(t *testing.T, err error) {
-				if !errors.Is(err, context.DeadlineExceeded) {
-					t.Errorf("err = %v, want context.DeadlineExceeded", err)
+				var ne net.Error
+				if !errors.As(err, &ne) || !ne.Timeout() {
+					t.Errorf("err = %v, want timeout do cliente HTTP", err)
 				}
 			},
 		},
@@ -150,10 +152,49 @@ func TestRepoErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := newTestClient(t, tt.handler)
-			c.Timeout = 50 * time.Millisecond
+			c.HTTP.Timeout = 50 * time.Millisecond
 			_, err := c.Repo(context.Background(), "a/b")
 			tt.check(t, err)
 		})
+	}
+}
+
+// O prazo do ctx de quem chama também limita a requisição.
+func TestRepoContextDeadline(t *testing.T) {
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-r.Context().Done():
+		case <-time.After(2 * time.Second):
+		}
+	})
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+	if _, err := c.Repo(ctx, "a/b"); !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("err = %v, want context.DeadlineExceeded", err)
+	}
+}
+
+// O valor zero de Client funciona: sem HTTP, usa o cliente padrão.
+func TestZeroClient(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/u/1" {
+			w.Header().Set("Content-Type", "image/png")
+			w.Write(pngBytes(t))
+			return
+		}
+		w.Write([]byte(`{"stargazers_count": 2}`))
+	}))
+	t.Cleanup(srv.Close)
+
+	c := &Client{APIURL: srv.URL, AvatarURL: srv.URL}
+	if repo, err := c.Repo(context.Background(), "a/b"); err != nil || repo.Stars != 2 {
+		t.Errorf("Repo = %+v, %v", repo, err)
+	}
+	if _, err := c.Avatar(context.Background(), 1, 144); err != nil {
+		t.Errorf("Avatar: %v", err)
+	}
+	if NewClient("").HTTP.Timeout != DefaultTimeout {
+		t.Error("NewClient deveria usar DefaultTimeout")
 	}
 }
 

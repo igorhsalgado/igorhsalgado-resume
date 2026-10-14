@@ -28,17 +28,14 @@ var imageExt = map[string]string{
 // (o GitHub redimensiona no servidor). A resposta precisa declarar um
 // Content-Type de imagem e os bytes precisam ser JPEG, PNG ou WebP.
 func (c *Client) Avatar(ctx context.Context, userID int64, size int) (Image, error) {
-	ctx, cancel := context.WithTimeout(ctx, c.Timeout)
-	defer cancel()
-
-	url := fmt.Sprintf("%s/u/%d?s=%d", c.AvatarURL, userID, size)
+	url := fmt.Sprintf("%s/u/%d?s=%d", orDefault(c.AvatarURL, DefaultAvatarURL), userID, size)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return Image{}, err
 	}
 	req.Header.Set("User-Agent", userAgent)
 
-	resp, err := c.HTTP.Do(req)
+	resp, err := c.do(req)
 	if err != nil {
 		return Image{}, err
 	}
