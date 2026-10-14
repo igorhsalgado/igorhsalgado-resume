@@ -3,7 +3,7 @@ name: Deploy (GitHub Pages)
 on:
   push:
     branches: [main]
-  # Rebuild diário: atualiza "último push" e estrelas dos cards de projeto.
+  # Rebuild diário: atualiza "último push", estrelas dos cards e a foto (avatar do GitHub).
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
@@ -20,17 +20,29 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      # Usado por src/lib/github.ts no build (limite de taxa maior na API do GitHub).
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Build e upload do site
-        uses: withastro/action@v6
+      - name: Setup Go
+        uses: actions/setup-go@v7
         with:
-          node-version: 22
+          go-version-file: go.mod
+          cache: true
+          # Sem dependências externas não há go.sum; o cache usa o go.mod.
+          cache-dependency-path: go.mod
+
+      - name: Gerar o site
+        env:
+          # Limite de requisições maior na API do GitHub durante o build.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # -site e -base usam os padrões (https://igorhsalgado.github.io e /igorhsalgado-resume).
+        run: go run ./cmd/site -out dist
+
+      - name: Upload do site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
 
   deploy:
     needs: build
