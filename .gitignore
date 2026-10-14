@@ -1,15 +1,5 @@
-# build output
+# site gerado (go run ./cmd/site)
 dist/
-.astro/
-
-# avatar do GitHub, baixado a cada build
-src/assets/github-avatar.*
-
-# dependencies
-node_modules/
-
-# logs
-npm-debug.log*
 
 # env
 .env
@@ -19,3 +9,4 @@ npm-debug.log*
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+.idea/
