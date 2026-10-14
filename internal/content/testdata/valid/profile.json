@@ -1,0 +1,39 @@
+{
+  "name": "Igor Hermann Salgado",
+  "handle": "igor@salgado",
+  "headline": "Desenvolvedor Backend · Go, Java e PostgreSQL",
+  "pitch": "Construo APIs e sistemas backend com Go, Java e PostgreSQL.",
+  "location": "Vitória (ES)",
+  "about": "Sou estudante do 4º período de Análise e Desenvolvimento de Sistemas na FAESA. Meu foco é backend com Go e Java, bancos PostgreSQL e integração entre serviços, com interesse especial em sistemas multi-tenant. Hoje atuo como estagiário Desenvolvedor Power Platform, entregando um app em produção do levantamento ao deploy.",
+  "experience": [
+    {
+      "role": "Desenvolvedor Power Platform — Estágio",
+      "company": "Prosperi",
+      "period": "mar/2026 – atual",
+      "highlights": [
+        "Desenvolvedor principal de um aplicativo de gestão de projetos Capex para uma rede hospitalar, do levantamento de requisitos ao deploy em produção. Único desenvolvedor presente em todo o ciclo do projeto.",
+        "Implementação das regras de negócio e adaptações específicas da rede, permitindo que os usuários conduzam a gestão dos projetos Capex dentro do app.",
+        "Stack: Power Apps, SharePoint e Power Automate."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "course": "Análise e Desenvolvimento de Sistemas",
+      "institution": "FAESA",
+      "detail": "4º período"
+    }
+  ],
+  "stack": [
+    { "label": "Linguagens", "items": ["Go", "Java"] },
+    { "label": "Bancos", "items": ["PostgreSQL"] },
+    { "label": "Frameworks", "items": ["Spring"] },
+    { "label": "Ferramentas", "items": ["Git", "Docker"] },
+    { "label": "Também uso", "items": ["React", "Power Platform"], "secondary": true }
+  ],
+  "contact": {
+    "email": "igorhermannsalgado@gmail.com",
+    "linkedin": "https://www.linkedin.com/in/igorhsalgado",
+    "github": "https://github.com/igorhsalgado"
+  }
+}

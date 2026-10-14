@@ -1,0 +1,31 @@
+{{define "hero"}}
+        <section id="inicio" aria-labelledby="hero-title" class="band flow">
+          <p class="prompt" aria-hidden="true"><span class="ps">$</span>whoami</p>
+
+          <div class="hero-grid{{if .Photo}} has-photo{{end}}">
+            <div class="flow hero-text">
+              <div>
+                <h1 id="hero-title" class="hero-title">{{.Profile.Name}}</h1>
+                <p class="hero-headline">{{.Profile.Headline}}</p>
+              </div>
+
+              <p class="hero-pitch">{{.Profile.Pitch}}</p>
+
+              <div class="hero-actions">
+                <a class="btn btn-primary" href="#projetos">Ver projetos</a>
+                {{- with .CVURL}}
+                <a class="btn" href="{{.}}" download>Baixar CV</a>
+                {{- end}}
+                <a class="btn btn-box" href="{{.Profile.Contact.GitHub}}" rel="me noopener"><span aria-hidden="true">↗</span>GitHub</a>
+                <a class="btn btn-box" href="{{.Profile.Contact.LinkedIn}}" rel="me noopener"><span aria-hidden="true">↗</span>LinkedIn</a>
+              </div>
+
+              <p class="hero-location">{{.Profile.Location}}</p>
+            </div>
+            {{- with .Photo}}
+
+            <img class="hero-photo" src="{{.Src}}"{{with .Srcset}} srcset="{{.}}"{{end}} alt="Foto de {{$.Profile.Name}}" width="144" height="144" loading="eager" fetchpriority="high" decoding="async">
+            {{- end}}
+          </div>
+        </section>
+{{- end}}
