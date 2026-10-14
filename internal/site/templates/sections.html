@@ -1,0 +1,91 @@
+{{/* Cabeçalho de seção: o prompt de terminal é o que aparece; o título real
+     fica no heading, só para leitores de tela. */}}
+{{define "section-heading"}}<h2 id="{{.ID}}" class="prompt"><span aria-hidden="true"><span class="ps">$</span>{{.Command}}</span><span class="sr-only">{{.Title}}</span></h2>{{end}}
+
+{{define "about"}}
+        <section id="sobre" aria-labelledby="sobre-title" class="band section">
+          <div class="flow">
+            {{template "section-heading" heading "sobre-title" "cat sobre.md" "Sobre"}}
+            <p class="measure">{{.Profile.About}}</p>
+          </div>
+        </section>
+{{- end}}
+
+{{define "projects"}}
+        <section id="projetos" aria-labelledby="projetos-title" class="band section">
+          <div class="flow">
+            {{template "section-heading" heading "projetos-title" "ls ./projetos" "Projetos"}}
+            <div class="project-grid">
+              {{- range .Projects}}
+              {{- template "project-card" .}}
+              {{- end}}
+            </div>
+          </div>
+        </section>
+{{- end}}
+
+{{define "experience"}}
+        <section id="experiencia" aria-labelledby="experiencia-title" class="band section">
+          <div class="flow">
+            {{template "section-heading" heading "experiencia-title" "cat experiencia.md" "Experiência"}}
+            {{- range .Profile.Experience}}
+
+            <article class="job">
+              <div>
+                <h3 class="job-role">{{.Role}}</h3>
+                <p class="job-org">{{.Company}} · {{.Period}}</p>
+              </div>
+              <ul class="job-highlights">
+                {{- range .Highlights}}
+                <li>{{.}}</li>
+                {{- end}}
+              </ul>
+            </article>
+            {{- end}}
+
+            <div class="education">
+              <h3 class="label">Formação</h3>
+              {{- range .Profile.Education}}
+              <p>{{.Course}} — {{.Institution}}{{with .Detail}}<span> · {{.}}</span>{{end}}</p>
+              {{- end}}
+            </div>
+          </div>
+        </section>
+{{- end}}
+
+{{define "stack"}}
+        <section id="stack" aria-labelledby="stack-title" class="band section">
+          <div class="flow">
+            {{template "section-heading" heading "stack-title" "stack --list" "Stack"}}
+            <dl class="stack-list">
+              {{- range .Profile.Stack}}
+              <dt class="stack-label">{{.Label}}</dt>
+              <dd>
+                <ul class="chips">
+                  {{- $class := "chip"}}{{if .Secondary}}{{$class = "chip chip-secondary"}}{{end}}
+                  {{- range .Items}}
+                  <li class="{{$class}}">{{.}}</li>
+                  {{- end}}
+                </ul>
+              </dd>
+              {{- end}}
+            </dl>
+          </div>
+        </section>
+{{- end}}
+
+{{define "contact"}}
+        <section id="contato" aria-labelledby="contato-title" class="band section">
+          <div class="flow">
+            {{template "section-heading" heading "contato-title" "contato" "Contato"}}
+            <ul class="contact-list">
+              <li><a href="mailto:{{.Profile.Contact.Email}}">{{.Profile.Contact.Email}}</a></li>
+              <li><a href="{{.Profile.Contact.LinkedIn}}" rel="me noopener">LinkedIn</a></li>
+              <li><a href="{{.Profile.Contact.GitHub}}" rel="me noopener">GitHub</a></li>
+              {{- with .CVURL}}
+              <li><a href="{{.}}" download>Baixar CV (PDF)</a></li>
+              {{- end}}
+            </ul>
+          </div>
+        </section>
+{{- end}}
