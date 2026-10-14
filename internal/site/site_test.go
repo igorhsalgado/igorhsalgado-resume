@@ -131,7 +131,7 @@ func TestBuildRendersPage(t *testing.T) {
 			`<main id="conteudo">`,
 			`<section id="inicio" aria-labelledby="hero-title"`,
 			`<h1 id="hero-title"`,
-			`<nav class="nav" aria-label="Navegação principal">`,
+			`<nav class="container nav" aria-label="Navegação principal">`,
 		)
 		for _, id := range []string{"sobre", "projetos", "experiencia", "stack", "contato"} {
 			assertContains(t, html,

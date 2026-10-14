@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#16191C">
+    <meta name="theme-color" content="#1E2226">
     <title>{{.Title}}</title>
     <meta name="description" content="{{.Description}}">
     <link rel="canonical" href="{{.Canonical}}">
@@ -37,8 +37,10 @@
       </main>
 
       <footer class="band band-tight site-footer">
-        <span>© {{.Year}} {{.Profile.Name}} · feito com Go</span>
-        <a href="#inicio" class="footer-top">↑ topo</a>
+        <div class="container footer-row">
+          <span>© {{.Year}} {{.Profile.Name}} · feito com Go</span>
+          <a href="#inicio" class="footer-top">↑ topo</a>
+        </div>
       </footer>
     </div>
   </body>
