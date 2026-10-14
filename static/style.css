@@ -56,8 +56,8 @@
 
 /* Tokens. */
 :root {
-  --bg: #16191c; /* fundo da página, em volta da moldura */
-  --surface: #1e2226; /* moldura da página (fundo do conteúdo) */
+  --bg: #16191c; /* fundo do html/body; quase nunca aparece (rolagem elástica) */
+  --surface: #1e2226; /* fundo da página: as faixas, de ponta a ponta */
   --box: #2a2f34; /* preenchimento: chips da stack, foto, links sociais */
   --border: #474e55;
   --text: #e2e5e8;
@@ -84,7 +84,7 @@
   --text-hero: clamp(1.75rem, 4vw, 2.5rem);
   --leading-hero: 1.15;
 
-  --width-page: 1040px;
+  --width-page: 1200px; /* largura máxima do conteúdo dentro das faixas, com o respiro lateral */
   --width-measure: 65ch;
   --width-pitch: 52ch;
   --width-list: 70ch;
@@ -194,31 +194,40 @@
 }
 
 @layer components {
-  /* Moldura da página: um bloco com borda sobre o fundo, como no wireframe.
-     A cor declarada aqui (e não só herdada do body) protege o conteúdo
-     mesmo se o body receber outra cor. */
+  /* Página: ocupa a tela inteira, sem moldura. A cor declarada aqui (e não só
+     herdada do body) protege o conteúdo mesmo se o body receber outra cor. */
   .page {
-    width: calc(100% - 2 * max(16px, env(safe-area-inset-left, 0px)));
-    max-width: var(--width-page);
-    margin: 1.5rem auto 3.5rem;
+    min-height: 100vh;
     background: var(--surface);
     color: var(--text);
-    border: 1px solid var(--border);
   }
 
-  /* Faixas internas da moldura (nav, seções, rodapé); as linhas entre elas vão de ponta a ponta. */
+  /* Faixas da página (nav, seções, rodapé): vão de ponta a ponta da tela, e as
+     linhas entre elas também. O conteúdo de cada uma fica num .container. */
   .band {
-    padding: 2.25rem 1.5rem;
+    padding-block: 2.25rem;
   }
   .band-tight {
     padding-block: 1rem;
   }
+  /* Miolo centralizado de cada faixa, com respiro lateral de 24px (16px no celular). */
+  .container {
+    --gutter: 1.5rem;
+    width: 100%;
+    max-width: var(--width-page);
+    margin-inline: auto;
+    padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px))
+      max(var(--gutter), env(safe-area-inset-right, 0px));
+  }
   @media (max-width: 760px) {
     .band {
-      padding: 1.5rem 1rem;
+      padding-block: 1.5rem;
     }
     .band-tight {
       padding-block: 0.75rem;
+    }
+    .container {
+      --gutter: 1rem;
     }
   }
 
@@ -593,15 +602,17 @@
 
   /* Rodapé. */
   .site-footer {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.75rem;
     border-top: 1px solid var(--border);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     line-height: var(--leading-xs);
     color: var(--text-muted);
+  }
+  .footer-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
   }
   .footer-top {
     color: var(--text-muted);

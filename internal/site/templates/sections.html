@@ -4,7 +4,7 @@
 
 {{define "about"}}
         <section id="sobre" aria-labelledby="sobre-title" class="band section">
-          <div class="flow">
+          <div class="container flow">
             {{template "section-heading" heading "sobre-title" "cat sobre.md" "Sobre"}}
             <p class="measure">{{.Profile.About}}</p>
           </div>
@@ -13,7 +13,7 @@
 
 {{define "projects"}}
         <section id="projetos" aria-labelledby="projetos-title" class="band section">
-          <div class="flow">
+          <div class="container flow">
             {{template "section-heading" heading "projetos-title" "ls ./projetos" "Projetos"}}
             <div class="project-grid">
               {{- range .Projects}}
@@ -26,7 +26,7 @@
 
 {{define "experience"}}
         <section id="experiencia" aria-labelledby="experiencia-title" class="band section">
-          <div class="flow">
+          <div class="container flow">
             {{template "section-heading" heading "experiencia-title" "cat experiencia.md" "Experiência"}}
             {{- range .Profile.Experience}}
 
@@ -55,7 +55,7 @@
 
 {{define "stack"}}
         <section id="stack" aria-labelledby="stack-title" class="band section">
-          <div class="flow">
+          <div class="container flow">
             {{template "section-heading" heading "stack-title" "stack --list" "Stack"}}
             <dl class="stack-list">
               {{- range .Profile.Stack}}
@@ -76,7 +76,7 @@
 
 {{define "contact"}}
         <section id="contato" aria-labelledby="contato-title" class="band section">
-          <div class="flow">
+          <div class="container flow">
             {{template "section-heading" heading "contato-title" "contato" "Contato"}}
             <ul class="contact-list">
               <li><a href="mailto:{{.Profile.Contact.Email}}">{{.Profile.Contact.Email}}</a></li>
