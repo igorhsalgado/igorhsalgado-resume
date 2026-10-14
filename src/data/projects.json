@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "smart-booking",
+    "repo": "The-Smart-Booking/thesmartbooking",
+    "title": "Smart Booking",
+    "description": "Plataforma multi-tenant de agendamentos com notificações via Telegram.",
+    "tags": ["Go", "React", "PostgreSQL", "Telegram"],
+    "meta": ["equipe de 3"]
+  },
+  {
+    "slug": "market-faesa",
+    "repo": "ArthurNunesDev/Projeto-Integrador-Computacional",
+    "title": "MarketFaesa",
+    "description": "Marketplace universitário para alunos da FAESA. Construí a base do backend: API em Spring Boot com autenticação JWT, Spring Security e migrações Flyway.",
+    "tags": ["Java", "Spring Boot", "PostgreSQL", "React"],
+    "meta": ["projeto em equipe", "minha parte: backend"],
+    "status": "em-desenvolvimento",
+    "showStars": false
+  }
+]
