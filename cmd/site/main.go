@@ -30,7 +30,7 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	slog.SetDefault(logger)
 	if err := run(); err != nil {
-		logger.Error(err.Error())
+		logger.Error("build falhou", "err", err)
 		os.Exit(1)
 	}
 }
