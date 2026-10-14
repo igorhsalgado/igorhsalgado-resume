@@ -2,8 +2,9 @@
 
 /*
  * Tokens do design system v1.
- * Escuro é o padrão (vive no :root). A variante clara já fica definida para
- * quando houver troca de tema, mas nada a ativa por enquanto.
+ * O site é só escuro: todo visitante recebe esta paleta, independente da
+ * preferência de tema do sistema. `color-scheme: dark` mantém barras de
+ * rolagem e controles nativos no tema escuro.
  */
 :root {
   --bg: #0e1116;
@@ -19,21 +20,7 @@
   color-scheme: dark;
 }
 
-:root[data-theme="light"] {
-  --bg: #f5f6f8;
-  --surface: #ffffff;
-  --border: #d3d9e0;
-  --text: #14181e;
-  --text-muted: #525c68;
-  --accent: #955800;
-  --accent-muted: #faebd0;
-  --on-accent: #ffffff;
-  --success: #1b7543;
-  --focus: #955800;
-  color-scheme: light;
-}
-
-/* Cores apontam para as variáveis acima: trocar o tema = trocar os valores. */
+/* Utilitários do Tailwind (bg-surface, text-accent...) apontam para as variáveis acima. */
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
