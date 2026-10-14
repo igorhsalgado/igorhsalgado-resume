@@ -24,7 +24,7 @@
 
 <h2 id="tech">💻 Tecnologias</h2>
 
-- [Go](https://go.dev) 1.27.2, só biblioteca padrão (sem dependências externas)
+- [Go](https://go.dev) 1.25 ou mais recente, só biblioteca padrão (sem dependências externas)
 - `html/template`, com os templates embutidos no binário
 - CSS puro e fontes IBM Plex (licença OFL) servidas pelo próprio site
 - API do GitHub (consultada só durante o build)
@@ -34,7 +34,7 @@
 
 <h3>Pré-requisitos</h3>
 
-- [Go](https://go.dev/dl/) 1.27.2 ou mais recente (versão definida no `go.mod`)
+- [Go](https://go.dev/dl/) 1.25 ou mais recente (versão definida no `go.mod`)
 - [Git](https://git-scm.com)
 
 <h3>Clonando</h3>
@@ -56,7 +56,7 @@ Flags de `cmd/site` (todas opcionais):
 
 | Flag | Padrão | Para que serve |
 | --- | --- | --- |
-| `-out` | `dist` | Diretório de saída, apagado e recriado a cada build. |
+| `-out` | `dist` | Diretório de saída, apagado e recriado a cada build. Não pode ser o diretório atual (nem um acima dele) nem se sobrepor a `static/` ou `data/`. |
 | `-base` | `/igorhsalgado-resume` | Caminho base onde o site é publicado. |
 | `-site` | `https://igorhsalgado.github.io` | Origem do site, usada no canonical e no `og:url`. |
 | `-serve` | (vazio) | Depois do build, serve o site neste endereço (ex.: `:8080`). |
@@ -72,7 +72,7 @@ Todo o texto do site sai de dois arquivos JSON, lidos e validados por `internal/
 | `data/profile.json` | Nome, handle, título, pitch, localização, "Sobre", experiência, formação, grupos da stack e contatos. |
 | `data/projects.json` | Projetos: `slug`, `repo` (`dono/nome` no GitHub), `title`, `description`, `tags`, `meta` e, opcionalmente, `status` (`"em-desenvolvimento"`) e `showStars` (`false` esconde as estrelas). |
 
-O build para com uma mensagem clara se faltar um campo obrigatório, se houver um campo desconhecido (um erro de digitação, por exemplo), se um `slug` não for só letras minúsculas, números e hífens ou estiver repetido, se `repo` não estiver no formato `dono/nome` ou se `status` tiver outro valor. Sem `status`, o projeto é tratado como concluído e o badge não aparece.
+O build para com uma mensagem clara se faltar um campo obrigatório, se houver um campo desconhecido (um erro de digitação, por exemplo), se um `slug` não for só letras minúsculas, números e hífens ou estiver repetido, se `repo` não estiver no formato `dono/nome`, se uma linha de `meta` estiver vazia, se as URLs de contato (`linkedin`, `github`) não forem http(s) válidas ou tiverem espaços no começo ou no fim, ou se `status` tiver outro valor. Sem `status`, o projeto é tratado como concluído e o badge não aparece.
 
 <h3>Foto e currículo</h3>
 
@@ -93,6 +93,8 @@ O workflow `.github/workflows/deploy.yml` gera o site com `go run ./cmd/site -ou
 - todo dia às 06:00 UTC (`cron: '0 6 * * *'`), para atualizar os cards e a foto;
 - manualmente, em **Actions → Deploy (GitHub Pages) → Run workflow**.
 
+O GitHub desativa workflows agendados depois de 60 dias sem atividade no repositório, o que pararia o rebuild diário. Para reativar, use a aba **Actions** (qualquer push também mantém o agendamento ativo).
+
 Pull requests passam pelo `.github/workflows/ci.yml`: `gofmt -l .`, `go vet ./...`, `go test -race ./...` e build.
 
 Configuração necessária (uma vez só): **Settings → Pages → Build and deployment → Source: GitHub Actions**.
@@ -106,6 +108,7 @@ data/               profile.json e projects.json (conteúdo)
 internal/content/   tipos, leitura e validação de data/*.json
 internal/github/    cliente da API do GitHub (github.go) e avatar (avatar.go)
 internal/site/      build.go, page.go, photo.go, render.go e templates/ (HTML embutido)
+internal/validate/  regras de formato compartilhadas (repositório dono/nome, URLs http(s))
 static/             style.css, favicon.svg e fonts/ (IBM Plex em woff2 + OFL.txt);
                     opcionalmente foto.jpg e cv.pdf
 go.mod
