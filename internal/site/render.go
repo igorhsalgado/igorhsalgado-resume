@@ -1,7 +1,6 @@
 package site
 
 import (
-	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
@@ -21,15 +20,13 @@ var templates = template.Must(
 	}).ParseFS(templateFS, "templates/*.html"),
 )
 
-// Render escreve a página completa em w.
+// Render escreve a página completa em w. Se falhar, w pode ter recebido
+// parte do HTML; Build renderiza num buffer antes de gravar o arquivo.
 func Render(w io.Writer, p *Page) error {
-	// Renderiza em memória primeiro para não deixar HTML pela metade em w.
-	var buf bytes.Buffer
-	if err := templates.ExecuteTemplate(&buf, "layout", p); err != nil {
+	if err := templates.ExecuteTemplate(w, "layout", p); err != nil {
 		return fmt.Errorf("renderizando a página: %w", err)
 	}
-	_, err := buf.WriteTo(w)
-	return err
+	return nil
 }
 
 // heading são os dados do cabeçalho de seção (templates/sections.html).

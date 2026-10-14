@@ -121,6 +121,7 @@ func Build(ctx context.Context, cfg Config) error {
 		page.Projects = append(page.Projects, NewCard(p, repos[i]))
 	}
 
+	// Renderiza em memória para não deixar index.html pela metade.
 	var html bytes.Buffer
 	if err := Render(&html, page); err != nil {
 		return err
