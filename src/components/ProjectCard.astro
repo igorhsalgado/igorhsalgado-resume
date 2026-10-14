@@ -1,0 +1,78 @@
+---
+import type { Project } from '../lib/content';
+import { STATUS_LABEL } from '../lib/content';
+import { getRepoInfo, formatDate } from '../lib/github';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const info = await getRepoInfo(project.repo);
+
+const repoUrl = info?.htmlUrl ?? `https://github.com/${project.repo}`;
+const showStars = project.showStars !== false && info?.stars != null && info.stars > 0;
+const headingId = `proj-${project.slug}`;
+---
+
+<article
+  class="grid min-w-0 content-start gap-3.5 rounded-md border border-border bg-surface p-5 transition-colors duration-150 hover:border-text-muted"
+  aria-labelledby={headingId}
+>
+  <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+    <h3
+      id={headingId}
+      class="font-mono text-lg font-medium [overflow-wrap:anywhere] text-text"
+      aria-label={project.title}
+    >
+      <span class="text-text-muted">./</span>{project.slug}<span class="text-text-muted">/</span>
+    </h3>
+    {
+      project.status && (
+        <span class="status">
+          <span aria-hidden="true">●</span> {STATUS_LABEL[project.status]}
+        </span>
+      )
+    }
+  </div>
+
+  <p class="text-base text-text">{project.description}</p>
+
+  <ul class="m-0 flex list-none flex-wrap gap-1.5 p-0" aria-label="Tecnologias">
+    {project.tags.map((tag) => <li class="tag">{tag}</li>)}
+  </ul>
+
+  <p class="flex flex-wrap gap-x-3.5 gap-y-1 font-mono text-xs text-text-muted tabular-nums">
+    {project.meta.map((item) => <span>{item}</span>)}
+    {
+      info?.pushedAt && (
+        <span>
+          último push: <time datetime={info.pushedAt}>{formatDate(info.pushedAt)}</time>
+        </span>
+      )
+    }
+    {
+      showStars && (
+        <span>
+          <span aria-hidden="true">★ {info!.stars}</span>
+          <span class="sr-only">
+            {info!.stars} {info!.stars === 1 ? 'estrela' : 'estrelas'} no GitHub
+          </span>
+        </span>
+      )
+    }
+  </p>
+
+  <div class="flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-3 text-sm">
+    <a href={repoUrl} rel="noopener">
+      Repositório<span class="sr-only"> de {project.title} no GitHub</span>
+    </a>
+    {
+      info?.homepage && (
+        <a href={info.homepage} rel="noopener">
+          Demo<span class="sr-only"> de {project.title}</span>
+        </a>
+      )
+    }
+  </div>
+</article>

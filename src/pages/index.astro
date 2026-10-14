@@ -1,0 +1,182 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { profile, projects } from '../lib/content';
+import { hasCv, cvHref } from '../lib/site';
+
+const title = `${profile.name} · Desenvolvedor Backend`;
+const description = `${profile.name}, desenvolvedor backend em ${profile.location}. ${profile.pitch}`;
+const year = new Date().getFullYear();
+const linkedinLabel = 'LinkedIn';
+const githubLabel = 'GitHub';
+
+const section = 'border-t border-border py-16 lg:py-24';
+---
+
+<Layout title={title} description={description}>
+  <a
+    href="#conteudo"
+    class="sr-only rounded-md bg-accent px-4 py-2 text-on-accent no-underline focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-10"
+  >
+    Pular para o conteúdo
+  </a>
+
+  <Nav />
+
+  <main id="conteudo" class="wrap">
+    {/* HERO */}
+    <section id="inicio" aria-labelledby="hero-title" class="grid gap-6 pt-16 pb-16 lg:pt-24 lg:pb-24">
+      <div class="grid gap-2">
+        <p class="font-mono text-sm text-text-muted" aria-hidden="true">
+          <span class="mr-[0.6ch] text-accent">$</span>whoami
+        </p>
+        <h1 id="hero-title" class="text-2xl font-semibold tracking-[-0.015em] text-text">
+          {profile.name}
+        </h1>
+        <p class="font-mono text-base text-text-muted">{profile.headline}</p>
+      </div>
+
+      <p class="max-w-measure text-lg text-text">{profile.pitch}</p>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <a class="btn btn-primary" href="#projetos">Ver projetos</a>
+        {
+          hasCv && (
+            <a class="btn btn-secondary" href={cvHref} download>
+              Baixar CV
+            </a>
+          )
+        }
+        <a class="btn btn-secondary" href={profile.contact.github} rel="me noopener">
+          <span class="font-mono text-xs" aria-hidden="true">↗</span>
+          {githubLabel}
+        </a>
+        <a class="btn btn-secondary" href={profile.contact.linkedin} rel="me noopener">
+          <span class="font-mono text-xs" aria-hidden="true">↗</span>
+          {linkedinLabel}
+        </a>
+      </div>
+
+      <p class="text-sm text-text-muted">{profile.location}</p>
+    </section>
+
+    {/* SOBRE */}
+    <section id="sobre" aria-labelledby="sobre-title" class={section}>
+      <div class="grid gap-8">
+        <SectionHeading id="sobre-title" command="cat sobre.md" title="Sobre" />
+        <p class="max-w-measure">{profile.about}</p>
+      </div>
+    </section>
+
+    {/* PROJETOS */}
+    <section id="projetos" aria-labelledby="projetos-title" class={section}>
+      <div class="grid gap-8">
+        <SectionHeading id="projetos-title" command="ls ./projetos" title="Projetos" />
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {projects.map((project) => <ProjectCard project={project} />)}
+        </div>
+      </div>
+    </section>
+
+    {/* EXPERIÊNCIA + FORMAÇÃO */}
+    <section id="experiencia" aria-labelledby="experiencia-title" class={section}>
+      <div class="grid gap-8">
+        <SectionHeading id="experiencia-title" command="cat experiencia.md" title="Experiência" />
+
+        {
+          profile.experience.map((job) => (
+            <article class="grid gap-3 border-l-2 border-border pl-4">
+              <div>
+                <h3 class="text-lg font-semibold text-text">{job.role}</h3>
+                <p class="font-mono text-sm text-text-muted">
+                  {job.company} · {job.period}
+                </p>
+              </div>
+              <ul class="m-0 grid max-w-measure list-disc gap-2 pl-5 marker:text-text-muted">
+                {job.highlights.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+
+        <div class="grid gap-1 border-t border-dashed border-border pt-6">
+          <h3 class="font-mono text-xs font-normal tracking-[0.06em] text-text-muted uppercase">
+            Formação
+          </h3>
+          {
+            profile.education.map((edu) => (
+              <p>
+                {edu.course} — {edu.institution}
+                {edu.detail && <span class="text-text-muted"> · {edu.detail}</span>}
+              </p>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    {/* STACK */}
+    <section id="stack" aria-labelledby="stack-title" class={section}>
+      <div class="grid gap-8">
+        <SectionHeading id="stack-title" command="stack --list" title="Stack" />
+        <dl class="m-0 grid border-t border-border">
+          {
+            profile.stack.map((group) => (
+              <div class="grid min-w-0 grid-cols-1 gap-2 border-b border-border py-3.5 sm:grid-cols-[140px_1fr] sm:items-center sm:gap-5">
+                <dt class="font-mono text-xs text-text-muted lowercase">
+                  <span class="mr-[0.5ch] text-accent" aria-hidden="true">--</span>
+                  {group.label}
+                </dt>
+                <dd class="m-0">
+                  <ul class="m-0 flex list-none flex-wrap gap-1.5 p-0">
+                    {group.items.map((item) => (
+                      <li class:list={['tag', { 'tag-secondary': group.secondary }]}>{item}</li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </section>
+
+    {/* CONTATO */}
+    <section id="contato" aria-labelledby="contato-title" class={section}>
+      <div class="grid gap-8">
+        <SectionHeading id="contato-title" command="contato" title="Contato" />
+        <ul class="m-0 flex list-none flex-wrap gap-x-6 gap-y-2 p-0 font-mono text-sm">
+          <li>
+            <a href={`mailto:${profile.contact.email}`}>{profile.contact.email}</a>
+          </li>
+          <li>
+            <a href={profile.contact.linkedin} rel="me noopener">{linkedinLabel}</a>
+          </li>
+          <li>
+            <a href={profile.contact.github} rel="me noopener">{githubLabel}</a>
+          </li>
+          {
+            hasCv && (
+              <li>
+                <a href={cvHref} download>
+                  Baixar CV (PDF)
+                </a>
+              </li>
+            )
+          }
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-border">
+    <div class="wrap flex flex-wrap justify-between gap-3 pt-10 pb-14 font-mono text-xs text-text-muted">
+      <span>© {year} {profile.name} · feito com Astro</span>
+      <a href="#inicio">↑ topo</a>
+    </div>
+  </footer>
+</Layout>

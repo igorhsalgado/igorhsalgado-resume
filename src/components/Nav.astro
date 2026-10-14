@@ -1,0 +1,51 @@
+---
+import { profile } from '../lib/content';
+import { hasCv, cvHref } from '../lib/site';
+
+const [user, host] = profile.handle.split('@');
+const links = [
+  { href: '#sobre', label: 'sobre' },
+  { href: '#projetos', label: 'projetos' },
+  { href: '#experiencia', label: 'experiência' },
+  { href: '#stack', label: 'stack' },
+  { href: '#contato', label: 'contato' },
+];
+---
+
+<header class="border-b border-border bg-surface">
+  <nav
+    class="wrap flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-3.5"
+    aria-label="Navegação principal"
+  >
+    <a href="#inicio" class="font-mono text-sm text-text no-underline">
+      {user}<span class="text-accent">@</span>{host}<span class="text-accent" aria-hidden="true">:~$</span>
+    </a>
+    <ul class="m-0 flex list-none flex-wrap items-center gap-x-[18px] gap-y-1 p-0">
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class="py-1 font-mono text-xs text-text-muted no-underline hover:text-text"
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+      {
+        hasCv && (
+          <li>
+            <a
+              href={cvHref}
+              class="rounded-md border border-border px-3 py-1 font-mono text-xs text-text no-underline hover:border-text-muted"
+              download
+            >
+              cv.pdf
+            </a>
+          </li>
+        )
+      }
+    </ul>
+  </nav>
+</header>
