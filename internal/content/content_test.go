@@ -71,3 +71,28 @@ func TestLoadErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateContactURLs(t *testing.T) {
+	for raw, valid := range map[string]bool{
+		"https://www.linkedin.com/in/exemplo": true,
+		"http://exemplo.dev":                  true,
+		" https://www.linkedin.com/in/x":      false,
+		"https://www.linkedin.com/in/x ":      false,
+		"javascript:alert(1)":                 false,
+		"www.linkedin.com/in/x":               false,
+		"":                                    false,
+	} {
+		c, err := Load("testdata/valid")
+		if err != nil {
+			t.Fatal(err)
+		}
+		c.Profile.Contact.LinkedIn = raw
+		err = c.Validate()
+		if valid && err != nil {
+			t.Errorf("linkedin %q: %v", raw, err)
+		}
+		if !valid && (err == nil || !strings.Contains(err.Error(), "profile.contact.linkedin")) {
+			t.Errorf("linkedin %q: err = %v, want erro em profile.contact.linkedin", raw, err)
+		}
+	}
+}

@@ -168,24 +168,6 @@ func TestRepoInvalidNameSkipsRequest(t *testing.T) {
 	}
 }
 
-func TestHTTPURL(t *testing.T) {
-	for raw, want := range map[string]string{
-		"https://example.com/x":  "https://example.com/x",
-		"http://example.com":     "http://example.com",
-		" https://example.com ":  "https://example.com",
-		"javascript:alert(1)":    "",
-		"data:text/html,oi":      "",
-		"ftp://example.com/file": "",
-		"/relativo":              "",
-		"https://":               "",
-		"":                       "",
-	} {
-		if got := HTTPURL(raw); got != want {
-			t.Errorf("HTTPURL(%q) = %q, want %q", raw, got, want)
-		}
-	}
-}
-
 func pngBytes(t *testing.T) []byte {
 	t.Helper()
 	img := image.NewGray(image.Rect(0, 0, 2, 2))
@@ -236,5 +218,18 @@ func TestAvatar(t *testing.T) {
 				t.Errorf("Avatar = ext %q, %d bytes", img.Ext, len(img.Data))
 			}
 		})
+	}
+}
+
+// O nome vai escapado no caminho da requisição.
+func TestRepoEscapesPath(t *testing.T) {
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.EscapedPath() != "/repos/Dono.X/repo_y.go" {
+			t.Errorf("path = %q", r.URL.EscapedPath())
+		}
+		w.Write([]byte(`{}`))
+	})
+	if _, err := c.Repo(context.Background(), "Dono.X/repo_y.go"); err != nil {
+		t.Fatal(err)
 	}
 }

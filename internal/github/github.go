@@ -15,9 +15,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
+
+	"github.com/igorhsalgado/igorhsalgado-resume/internal/validate"
 )
 
 const (
@@ -79,28 +80,18 @@ func (e *StatusError) Error() string {
 // ErrInvalidRepo é devolvido quando o nome do repositório não é "dono/nome".
 var ErrInvalidRepo = errors.New("nome de repositório inválido")
 
-var repoNamePattern = regexp.MustCompile(`^[\w.-]+/[\w.-]+$`)
-
-// ValidRepoName informa se name está no formato "dono/nome". "." e ".." são
-// recusados para o nome não escapar do caminho /repos/ da API.
-func ValidRepoName(name string) bool {
-	if !repoNamePattern.MatchString(name) {
-		return false
-	}
-	owner, repo, _ := strings.Cut(name, "/")
-	return strings.Trim(owner, ".") != "" && strings.Trim(repo, ".") != ""
-}
-
 // Repo busca os metadados públicos de um repositório ("dono/nome").
 func (c *Client) Repo(ctx context.Context, name string) (Repo, error) {
-	if !ValidRepoName(name) {
+	if !validate.RepoName(name) {
 		return Repo{}, fmt.Errorf("%w: %q", ErrInvalidRepo, name)
 	}
+	owner, repoName, _ := strings.Cut(name, "/")
+	endpoint := c.APIURL + "/repos/" + url.PathEscape(owner) + "/" + url.PathEscape(repoName)
 
 	ctx, cancel := context.WithTimeout(ctx, c.Timeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.APIURL+"/repos/"+name, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return Repo{}, err
 	}
@@ -130,11 +121,10 @@ func (c *Client) Repo(ctx context.Context, name string) (Repo, error) {
 		return Repo{}, fmt.Errorf("resposta inválida: %w", err)
 	}
 
-	repo := Repo{
-		Stars:    max(body.StargazersCount, 0),
-		HTMLURL:  HTTPURL(body.HTMLURL),
-		Homepage: HTTPURL(body.Homepage),
-	}
+	repo := Repo{Stars: max(body.StargazersCount, 0)}
+	// Links que não sejam http(s) (javascript:, data:...) são descartados.
+	repo.HTMLURL, _ = validate.HTTPURL(body.HTMLURL)
+	repo.Homepage, _ = validate.HTTPURL(body.Homepage)
 	if t, err := time.Parse(time.RFC3339, body.PushedAt); err == nil {
 		repo.PushedAt = t
 	}
@@ -148,15 +138,4 @@ func checkStatus(resp *http.Response) error {
 	limited := (resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests) &&
 		resp.Header.Get("X-RateLimit-Remaining") == "0"
 	return &StatusError{StatusCode: resp.StatusCode, RateLimited: limited}
-}
-
-// HTTPURL devolve raw se for uma URL absoluta http ou https, e "" caso
-// contrário. Protege os links do card contra javascript:, data: e afins.
-func HTTPURL(raw string) string {
-	raw = strings.TrimSpace(raw)
-	u, err := url.Parse(raw)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-		return ""
-	}
-	return u.String()
 }

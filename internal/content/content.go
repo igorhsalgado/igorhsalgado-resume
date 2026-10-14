@@ -9,13 +9,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/igorhsalgado/igorhsalgado-resume/internal/github"
+	"github.com/igorhsalgado/igorhsalgado-resume/internal/validate"
 )
 
 // Profile reúne os dados pessoais e de carreira exibidos na página.
@@ -189,7 +188,7 @@ func (c *Content) Validate() error {
 			v.addf("%s.slug: %q repetido", field, proj.Slug)
 		}
 		slugs[proj.Slug] = true
-		if !github.ValidRepoName(proj.Repo) {
+		if !validate.RepoName(proj.Repo) {
 			v.addf("%s.repo: use o formato dono/nome (recebido %q)", field, proj.Repo)
 		}
 		if proj.Status != "" && proj.Status != StatusInDevelopment {
@@ -211,9 +210,10 @@ func (v *validator) required(field, value string) {
 	}
 }
 
+// httpURL exige uma URL http(s) absoluta. Espaços nas pontas também são
+// recusados: o valor vai como está para o href.
 func (v *validator) httpURL(field, value string) {
-	u, err := url.Parse(value)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+	if _, ok := validate.HTTPURL(value); !ok || strings.TrimSpace(value) != value {
 		v.addf("%s: URL http(s) inválida %q", field, value)
 	}
 }
