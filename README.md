@@ -5,7 +5,7 @@ Portfólio de **Igor Hermann Salgado**, desenvolvedor backend (Go, Java e Postgr
 Site estático feito com [Astro](https://astro.build) e [Tailwind CSS](https://tailwindcss.com), publicado no GitHub Pages:
 <https://igorhsalgado.github.io/igorhsalgado-resume/>
 
-- Tema escuro, fontes IBM Plex Sans e IBM Plex Mono (servidas pelo próprio site via `@fontsource`).
+- Tema escuro em tons de cinza (baseado no wireframe aprovado), fontes IBM Plex Sans e IBM Plex Mono (servidas pelo próprio site via `@fontsource`).
 - Nenhum JavaScript é enviado ao navegador: a página é HTML + CSS.
 - Os cards de projeto mostram dados do GitHub (último push e estrelas) buscados **no build**.
 
@@ -37,6 +37,15 @@ Para adicionar um projeto, inclua um novo objeto em `projects.json`. Para marcar
 ### Currículo em PDF
 
 O botão "Baixar CV" só aparece se existir o arquivo `public/cv.pdf` no momento do build. Basta adicionar o PDF nesse caminho e publicar.
+
+### Foto
+
+A foto do topo da página só aparece se existir o arquivo `src/assets/foto.jpg` no momento do build (também vale `foto.png`, `foto.jpeg` ou `foto.webp`; use só um deles). Basta adicionar o arquivo nesse caminho e publicar (commit + push na `main`). Sem o arquivo, o texto do topo ocupa a largura toda.
+
+- Formato: **quadrado (1:1)**. Fotos em outra proporção são recortadas pelo centro.
+- Tamanho recomendado: **600 × 600 px** ou mais (o mínimo útil é 288 × 288 px).
+- No build, o Astro redimensiona a imagem (144 px e 288 px, para telas comuns e de alta densidade) e converte para WebP; o arquivo original não é publicado.
+- No computador a foto fica à direita do nome; no celular, acima dele.
 
 ## Como os cards de projeto se atualizam
 
@@ -71,5 +80,6 @@ src/
   lib/          leitura do conteúdo, API do GitHub e helpers de caminho
   pages/        index.astro (página inicial)
   styles/       global.css (tokens do design system + Tailwind)
+  assets/       foto.jpg (foto do topo, quando existir)
 public/         favicon.svg (e cv.pdf, quando existir)
 ```
