@@ -38,9 +38,20 @@ type Card struct {
 	MetaItems []MetaItem
 }
 
-// MetaItem é um item da linha de metadados do card. Só um campo é preenchido:
-// Text (linha fixa do JSON), PushedAt (último push) ou Stars.
+// MetaKind diz que tipo de item da linha de metadados um MetaItem é.
+// Os templates comparam com os valores em texto ("text", "pushed", "stars").
+type MetaKind string
+
+const (
+	MetaText   MetaKind = "text"   // linha fixa do JSON, em Text
+	MetaPushed MetaKind = "pushed" // data do último push, em PushedAt
+	MetaStars  MetaKind = "stars"  // estrelas do GitHub, em Stars
+)
+
+// MetaItem é um item da linha de metadados do card. Kind diz qual dos
+// outros campos vale.
 type MetaItem struct {
+	Kind     MetaKind
 	Text     string
 	PushedAt time.Time
 	Stars    int
@@ -51,7 +62,7 @@ type MetaItem struct {
 func NewCard(p content.Project, repo *github.Repo) Card {
 	card := Card{Project: p, RepoURL: "https://github.com/" + p.Repo}
 	for _, text := range p.Meta {
-		card.MetaItems = append(card.MetaItems, MetaItem{Text: text})
+		card.MetaItems = append(card.MetaItems, MetaItem{Kind: MetaText, Text: text})
 	}
 	if repo == nil {
 		return card
@@ -61,10 +72,10 @@ func NewCard(p content.Project, repo *github.Repo) Card {
 	}
 	card.Homepage = repo.Homepage
 	if !repo.PushedAt.IsZero() {
-		card.MetaItems = append(card.MetaItems, MetaItem{PushedAt: repo.PushedAt})
+		card.MetaItems = append(card.MetaItems, MetaItem{Kind: MetaPushed, PushedAt: repo.PushedAt})
 	}
 	if p.StarsEnabled() && repo.Stars > 0 {
-		card.MetaItems = append(card.MetaItems, MetaItem{Stars: repo.Stars})
+		card.MetaItems = append(card.MetaItems, MetaItem{Kind: MetaStars, Stars: repo.Stars})
 	}
 	return card
 }

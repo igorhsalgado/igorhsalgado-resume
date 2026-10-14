@@ -188,6 +188,9 @@ func (c *Content) Validate() error {
 			v.addf("%s.slug: %q repetido", field, proj.Slug)
 		}
 		slugs[proj.Slug] = true
+		for j, line := range proj.Meta {
+			v.required(fmt.Sprintf("%s.meta[%d]", field, j), line)
+		}
 		if !validate.RepoName(proj.Repo) {
 			v.addf("%s.repo: use o formato dono/nome (recebido %q)", field, proj.Repo)
 		}

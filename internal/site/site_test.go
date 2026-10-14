@@ -348,8 +348,15 @@ func TestNewCard(t *testing.T) {
 	if card.RepoURL != "https://github.com/Dono/X" {
 		t.Errorf("RepoURL = %q", card.RepoURL)
 	}
-	if len(card.MetaItems) != 2 || !card.MetaItems[1].PushedAt.Equal(pushed) {
+	if len(card.MetaItems) != 2 || card.MetaItems[0].Kind != MetaText ||
+		card.MetaItems[1].Kind != MetaPushed || !card.MetaItems[1].PushedAt.Equal(pushed) {
 		t.Errorf("MetaItems = %+v; estrelas escondidas não deveriam entrar", card.MetaItems)
+	}
+
+	p.ShowStars = nil
+	card = NewCard(p, &github.Repo{Stars: 9})
+	if len(card.MetaItems) != 2 || card.MetaItems[1] != (MetaItem{Kind: MetaStars, Stars: 9}) {
+		t.Errorf("MetaItems = %+v; sem push, só as estrelas deveriam entrar", card.MetaItems)
 	}
 }
 

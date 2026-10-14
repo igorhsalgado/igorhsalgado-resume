@@ -17,8 +17,8 @@
                 <p class="card-meta">
                   {{- range $i, $item := .MetaItems}}
                   {{- if $i}}<span aria-hidden="true"> · </span>{{end}}
-                  {{- if $item.Stars}}<span><span aria-hidden="true">★ {{$item.Stars}}</span><span class="sr-only">{{$item.Stars}} {{if eq $item.Stars 1}}estrela{{else}}estrelas{{end}} no GitHub</span></span>
-                  {{- else if not $item.PushedAt.IsZero}}<span>último push: <time datetime="{{isoDate $item.PushedAt}}">{{formatDate $item.PushedAt}}</time></span>
+                  {{- if eq $item.Kind "stars"}}<span><span aria-hidden="true">★ {{$item.Stars}}</span><span class="sr-only">{{$item.Stars}} {{if eq $item.Stars 1}}estrela{{else}}estrelas{{end}} no GitHub</span></span>
+                  {{- else if eq $item.Kind "pushed"}}<span>último push: <time datetime="{{isoDate $item.PushedAt}}">{{formatDate $item.PushedAt}}</time></span>
                   {{- else}}<span>{{$item.Text}}</span>
                   {{- end}}
                   {{- end -}}

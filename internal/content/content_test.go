@@ -54,6 +54,7 @@ func TestLoadErrors(t *testing.T) {
 			"projects[0].repo",
 			"projects[0].title: campo obrigatório",
 			`projects[0].status: valor desconhecido "pronto"`,
+			"projects[1].meta[1]: campo obrigatório",
 			`projects[2].slug: "dup" repetido`,
 		}},
 	}
