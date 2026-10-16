@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -16,11 +17,27 @@ import (
 	"github.com/igorhsalgado/igorhsalgado-resume/internal/github"
 )
 
-// fakeGitHub responde com dados fixos; o que não estiver nos mapas vira erro.
+// fakeGitHub responde com dados fixos; o que não estiver nos mapas (ou
+// stats nil) vira erro.
 type fakeGitHub struct {
 	repos       map[string]github.Repo
+	stats       *github.CodeStats
 	avatars     map[int]github.Image // por tamanho
 	avatarCalls atomic.Int32
+
+	mu         sync.Mutex
+	statsLogin string
+	statsExtra []string
+}
+
+func (f *fakeGitHub) CodeStats(_ context.Context, login string, extra []string) (github.CodeStats, error) {
+	f.mu.Lock()
+	f.statsLogin, f.statsExtra = login, extra
+	f.mu.Unlock()
+	if f.stats != nil {
+		return *f.stats, nil
+	}
+	return github.CodeStats{}, &github.StatusError{StatusCode: 403, RateLimited: true}
 }
 
 func (f *fakeGitHub) Repo(_ context.Context, name string) (github.Repo, error) {
@@ -54,7 +71,12 @@ func fullGitHub() *fakeGitHub {
 	hidden.HTMLURL = "https://github.com/exemplo/sem-estrelas"
 	hidden.Homepage = ""
 	return &fakeGitHub{
-		repos:   map[string]github.Repo{"exemplo/com-dados": repo, "exemplo/sem-estrelas": hidden},
+		repos: map[string]github.Repo{"exemplo/com-dados": repo, "exemplo/sem-estrelas": hidden},
+		stats: &github.CodeStats{
+			PublicRepos: 5,
+			Repos:       7,
+			Languages:   map[string]int64{"Go": 600, "Java": 250, "CSS": 100, "HTML": 30, "Python": 15, "Shell": 4, "Dockerfile": 1},
+		},
 		avatars: map[int]github.Image{144: jpeg1x, 288: jpeg2x},
 	}
 }
@@ -147,7 +169,46 @@ func TestBuildRendersPage(t *testing.T) {
 	})
 
 	t.Run("sem JavaScript", func(t *testing.T) {
-		assertNotContains(t, html, "<script", "javascript:", " onclick=")
+		assertNotContains(t, html, "<script", "javascript:", " onclick=", " onload=", " onerror=")
+	})
+
+	t.Run("quadros de resumo do Sobre", func(t *testing.T) {
+		assertContains(t, html,
+			`<dl class="facts">`,
+			`<dt class="label">Atualmente</dt>
+                <dd class="fact-value">Desenvolvedor Power Platform — Estágio</dd>
+                <dd class="fact-detail">Prosperi · mar/2026 – atual</dd>`,
+			`<dt class="label">Formação</dt>
+                <dd class="fact-value">Análise e Desenvolvimento de Sistemas</dd>
+                <dd class="fact-detail">FAESA · 4º período</dd>`,
+			`<dt class="label">Foco</dt>
+                <dd class="fact-value">Backend, integração entre serviços e sistemas multi-tenant</dd>`,
+			`<dt class="label">Local</dt>
+                <dd class="fact-value">Vitória (ES)</dd>`,
+		)
+	})
+
+	t.Run("seção GitHub", func(t *testing.T) {
+		assertContains(t, html,
+			`<section id="github" aria-labelledby="github-title" class="band section">`,
+			`<h2 id="github-title" class="prompt"><span aria-hidden="true"><span class="ps">$</span>github --stats</span><span class="sr-only">GitHub</span></h2>`,
+			`<a href="https://github.com/igorhsalgado" rel="me noopener">github.com/igorhsalgado</a>`,
+			`<span>5 repositórios públicos</span>`,
+			// 600 de 1000 bytes; as duas menores (Shell e Dockerfile) viram "Outras".
+			`<span class="lang-seg shade-1" style="width: 60.0%"></span>`,
+			`<li><span class="lang-swatch shade-1" aria-hidden="true"></span>Go <span class="lang-pct">60,0%</span></li>`,
+			`<li><span class="lang-swatch shade-5" aria-hidden="true"></span>Python <span class="lang-pct">1,5%</span></li>`,
+			`<li><span class="lang-swatch shade-other" aria-hidden="true"></span>Outras <span class="lang-pct">0,5%</span></li>`,
+			`Por bytes de código em 7 repositórios: os públicos de igorhsalgado, sem forks, e os dos projetos acima.`,
+		)
+		assertNotContains(t, html, "Shell", "Dockerfile", `href="#github"`)
+	})
+
+	t.Run("seção GitHub soma os repositórios dos projetos", func(t *testing.T) {
+		gh := cfg.GitHub.(*fakeGitHub)
+		if gh.statsLogin != "igorhsalgado" || strings.Join(gh.statsExtra, ",") != "exemplo/com-dados,exemplo/sem-estrelas" {
+			t.Errorf("CodeStats(%q, %v)", gh.statsLogin, gh.statsExtra)
+		}
 	})
 
 	t.Run("sem frases de procura de emprego", func(t *testing.T) {
@@ -206,9 +267,15 @@ func TestBuildFallbackWithoutGitHub(t *testing.T) {
 		`<a href="https://github.com/exemplo/com-dados" rel="noopener">Repositório`,
 		`<p class="card-meta"><span>equipe de 3</span></p>`,
 	)
-	assertNotContains(t, html, "<img", "has-photo", "último push", "★", "Demo")
+	assertNotContains(t, html, "<img", "has-photo", "último push", "★", "Demo",
+		`id="github"`, "github --stats", "lang-bar", "linguagens-title")
+	// O resto da página não muda: quadros do Sobre e seção de contato seguem lá.
+	assertContains(t, html, `<dl class="facts">`, `<section id="contato"`)
 	if !strings.Contains(logs.String(), "limite de requisições") {
 		t.Errorf("o aviso deveria citar o motivo da falha; logs:\n%s", logs)
+	}
+	if !strings.Contains(logs.String(), "seção GitHub sai da página") {
+		t.Errorf("faltou o aviso da seção GitHub; logs:\n%s", logs)
 	}
 }
 
@@ -421,6 +488,98 @@ func TestBuildRefusesOutDirOverStatic(t *testing.T) {
 		}
 		if !fileExists(filepath.Join(static, "foto.jpg")) {
 			t.Errorf("OutDir %q: foto.jpg foi apagada", cfg.OutDir)
+		}
+	}
+}
+
+// Sem bytes de linguagem (repositórios vazios), a seção também some.
+func TestBuildOmitsGitHubWithoutLanguages(t *testing.T) {
+	gh := fullGitHub()
+	gh.stats = &github.CodeStats{PublicRepos: 2, Repos: 2, Languages: map[string]int64{}}
+	cfg, _ := testConfig(t, gh, newStatic(t))
+	assertNotContains(t, build(t, cfg), `id="github"`, "lang-bar")
+}
+
+// Sem cliente do GitHub, nada de seção nem de chamadas.
+func TestBuildWithoutGitHubClient(t *testing.T) {
+	cfg, _ := testConfig(t, nil, newStatic(t))
+	html := build(t, cfg)
+	assertNotContains(t, html, `id="github"`, "<img")
+	assertContains(t, html, `<dl class="facts">`)
+}
+
+func TestNewCodeSummary(t *testing.T) {
+	stats := github.CodeStats{
+		PublicRepos: 3,
+		Repos:       4,
+		// 1/3 de cada: 33,3% + 33,3% + 33,3% fecharia em 99,9%.
+		Languages: map[string]int64{"Go": 1, "Java": 1, "SQL": 1, "Vazia": 0},
+	}
+	got := newCodeSummary("igorhsalgado", "https://github.com/igorhsalgado", stats)
+	if got == nil {
+		t.Fatal("newCodeSummary = nil")
+	}
+	var names, pcts []string
+	total := 0
+	for _, l := range got.Languages {
+		names = append(names, l.Name)
+		pcts = append(pcts, l.Percent())
+		total += l.Tenths
+	}
+	if strings.Join(names, ",") != "Go,Java,SQL" {
+		t.Errorf("ordem = %v; empate deveria ir em ordem alfabética, sem a linguagem vazia", names)
+	}
+	if total != 1000 {
+		t.Errorf("porcentagens %v somam %d décimos, want 1000", pcts, total)
+	}
+	if got.Languages[0].Width() != "33.4%" || got.Languages[0].Percent() != "33,4%" {
+		t.Errorf("Width/Percent = %q/%q", got.Languages[0].Width(), got.Languages[0].Percent())
+	}
+
+	// Seis linguagens aparecem todas pelo nome; com sete, as duas menores viram "Outras".
+	six := map[string]int64{"A": 6, "B": 5, "C": 4, "D": 3, "E": 2, "F": 1}
+	if got := newCodeSummary("x", "", github.CodeStats{Languages: six}); len(got.Languages) != 6 || got.Languages[5].Name != "F" {
+		t.Errorf("seis linguagens: %+v", got.Languages)
+	}
+	six["G"] = 1
+	got = newCodeSummary("x", "", github.CodeStats{Languages: six})
+	if last := got.Languages[len(got.Languages)-1]; len(got.Languages) != 6 || last.Name != "Outras" || last.Shade != "other" {
+		t.Errorf("sete linguagens: %+v", got.Languages)
+	}
+
+	if newCodeSummary("x", "", github.CodeStats{}) != nil {
+		t.Error("sem bytes, newCodeSummary deveria devolver nil")
+	}
+}
+
+func TestNewFacts(t *testing.T) {
+	p := content.Profile{
+		Location:   "Vitória (ES)",
+		Experience: []content.Experience{{Role: "Dev", Company: "Empresa", Period: "jan/2025 – dez/2025"}},
+		Education:  []content.Education{{Course: "ADS", Institution: "FAESA"}},
+	}
+	var labels []string
+	for _, f := range newFacts(p) {
+		labels = append(labels, f.Label+"="+f.Value+"|"+f.Detail)
+	}
+	// Emprego encerrado não vira "Atualmente"; sem foco, sem o quadro Foco.
+	if got := strings.Join(labels, ";"); got != "Formação=ADS|FAESA;Local=Vitória (ES)|" {
+		t.Errorf("newFacts = %s", got)
+	}
+}
+
+func TestGitHubLogin(t *testing.T) {
+	for in, want := range map[string]string{
+		"https://github.com/igorhsalgado":      "igorhsalgado",
+		"https://www.github.com/igorhsalgado/": "igorhsalgado",
+		"https://gitlab.com/igorhsalgado":      "",
+		"https://github.com/a/b":               "",
+		"https://github.com/":                  "",
+		"javascript:alert(1)":                  "",
+	} {
+		got, ok := githubLogin(in)
+		if got != want || ok != (want != "") {
+			t.Errorf("githubLogin(%q) = %q, %v; want %q", in, got, ok, want)
 		}
 	}
 }

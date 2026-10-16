@@ -4,6 +4,7 @@
   "headline": "Desenvolvedor Backend · Go, Java e PostgreSQL",
   "pitch": "Construo APIs e sistemas backend com Go, Java e PostgreSQL.",
   "location": "Vitória (ES)",
+  "focus": "Backend, integração entre serviços e sistemas multi-tenant",
   "about": "Sou estudante do 4º período de Análise e Desenvolvimento de Sistemas na FAESA. Meu foco é backend com Go e Java, bancos PostgreSQL e integração entre serviços, com interesse especial em sistemas multi-tenant. Hoje atuo como estagiário Desenvolvedor Power Platform, entregando um app em produção do levantamento ao deploy.",
   "experience": [
     {

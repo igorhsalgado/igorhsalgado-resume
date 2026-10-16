@@ -19,11 +19,13 @@ import (
 
 // Profile reúne os dados pessoais e de carreira exibidos na página.
 type Profile struct {
-	Name       string       `json:"name"`
-	Handle     string       `json:"handle"`
-	Headline   string       `json:"headline"`
-	Pitch      string       `json:"pitch"`
-	Location   string       `json:"location"`
+	Name     string `json:"name"`
+	Handle   string `json:"handle"`
+	Headline string `json:"headline"`
+	Pitch    string `json:"pitch"`
+	Location string `json:"location"`
+	// Focus é opcional: a área de foco, mostrada num dos quadros de "Sobre".
+	Focus      string       `json:"focus"`
 	About      string       `json:"about"`
 	Experience []Experience `json:"experience"`
 	Education  []Education  `json:"education"`

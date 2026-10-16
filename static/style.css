@@ -6,6 +6,9 @@
  * âmbar, usado só no caractere `$` dos prompts, nos links de texto e no botão
  * principal. Badges, chips, tags, bordas e botões secundários ficam em cinza.
  *
+ * A barra de linguagens da seção GitHub também fica nos cinzas: tons de
+ * --text-muted misturados com --surface, nada de âmbar nem cor nova.
+ *
  * Texto em dois tons só, por função:
  *   --text: nome, títulos, comandos dos prompts, parágrafos, listas, chips;
  *   --text-muted: tudo o que é secundário (cargo, local, navegação, ./,
@@ -84,10 +87,12 @@
   --text-hero: clamp(1.75rem, 4vw, 2.5rem);
   --leading-hero: 1.15;
 
-  --width-page: 1200px; /* largura máxima do conteúdo dentro das faixas, com o respiro lateral */
-  --width-measure: 65ch;
+  /* O conteúdo ocupa a largura toda da tela; o que não estica é a linha de
+     texto corrido, sempre com no máximo ~75 caracteres. */
+  --gutter: clamp(1rem, 3vw, 3rem); /* respiro lateral: 16px no celular, até 48px */
+  --width-measure: 75ch;
   --width-pitch: 52ch;
-  --width-list: 70ch;
+  --width-list: 75ch;
 
   /* Barras de rolagem e controles nativos no tema escuro. */
   color-scheme: dark;
@@ -210,12 +215,10 @@
   .band-tight {
     padding-block: 1rem;
   }
-  /* Miolo centralizado de cada faixa, com respiro lateral de 24px (16px no celular). */
+  /* Miolo de cada faixa: toda a largura da tela, só com o respiro lateral.
+     Nav, seções e rodapé alinham pela mesma borda. */
   .container {
-    --gutter: 1.5rem;
     width: 100%;
-    max-width: var(--width-page);
-    margin-inline: auto;
     padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px))
       max(var(--gutter), env(safe-area-inset-right, 0px));
   }
@@ -225,9 +228,6 @@
     }
     .band-tight {
       padding-block: 0.75rem;
-    }
-    .container {
-      --gutter: 1rem;
     }
   }
 
@@ -356,7 +356,8 @@
     }
   }
 
-  /* Topo: texto + foto opcional à direita; no celular a foto sobe para cima do nome. */
+  /* Topo: texto + foto opcional logo à direita dele (não na borda da tela);
+     no celular a foto sobe para cima do nome. */
   .hero-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -364,7 +365,9 @@
     align-items: start;
   }
   .hero-grid.has-photo {
-    grid-template-columns: minmax(0, 1fr) 9rem;
+    grid-template-columns: minmax(0, auto) 9rem;
+    justify-content: start;
+    column-gap: 2.5rem;
   }
   .hero-text {
     min-width: 0;
@@ -420,17 +423,34 @@
   .measure {
     max-width: var(--width-measure);
   }
-
-  /* Projetos: uma coluna no celular, duas a partir de 768px. */
-  .project-grid {
+  /* Quadros de resumo: quantos couberem lado a lado, ocupando a largura. */
+  .facts {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
     gap: 1rem;
   }
-  @media (min-width: 48rem) {
-    .project-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .fact {
+    display: grid;
+    align-content: start;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+  }
+  .fact-value {
+    color: var(--text);
+  }
+  .fact-detail {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    color: var(--text-muted);
+  }
+
+  /* Projetos: quantas colunas de 22rem couberem; uma só no celular. */
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: 1rem;
   }
   .card {
     display: grid;
@@ -445,6 +465,9 @@
     .card:hover {
       border-color: var(--text-muted);
     }
+  }
+  .card > p:not(.card-meta) {
+    max-width: var(--width-measure);
   }
   .card-title {
     font-family: var(--font-mono);
@@ -505,7 +528,12 @@
     white-space: nowrap;
   }
 
-  /* Experiência e formação. */
+  /* Experiência e formação: empilhadas; em telas largas, a formação fica ao
+     lado da experiência, logo depois da linha de texto (não na borda). */
+  .xp {
+    display: grid;
+    gap: 1rem;
+  }
   .job {
     display: grid;
     gap: 0.75rem;
@@ -533,9 +561,22 @@
   }
   .education {
     display: grid;
+    align-content: start;
     gap: 0.25rem;
     border-top: 1px dashed var(--border);
     padding-top: 1rem;
+  }
+  @media (min-width: 64rem) {
+    .xp {
+      grid-template-columns: minmax(0, calc(var(--width-list) + 3rem)) minmax(16rem, 1fr);
+      gap: 1rem 2.5rem;
+    }
+    .education {
+      border-top: 0;
+      padding-top: 0;
+      border-left: 1px dashed var(--border);
+      padding-left: 1rem;
+    }
   }
   /* Rótulo em caixa alta ("Formação"). */
   .label {
@@ -548,11 +589,27 @@
     color: var(--text-muted);
   }
 
-  /* Stack: rótulo à esquerda, chips à direita; empilha em telas estreitas. */
+  /* Stack: rótulo à esquerda, chips à direita; empilha em telas estreitas.
+     Em telas largas, cada grupo (rótulo em cima, chips embaixo) vira uma
+     coluna, e os grupos se espalham pela largura. */
   .stack-list {
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
     gap: 0.75rem 1.5rem;
+  }
+  .stack-group {
+    display: contents;
+  }
+  @media (min-width: 64rem) {
+    .stack-list {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+      gap: 1rem 1.5rem;
+    }
+    .stack-group {
+      display: grid;
+      align-content: start;
+      gap: 0.5rem;
+    }
   }
   .stack-label {
     font-family: var(--font-mono);
@@ -588,6 +645,77 @@
     background: transparent;
     border-style: dashed;
     color: var(--text-muted);
+  }
+
+  /* GitHub: barra de linguagens em tons de cinza, com legenda logo abaixo. */
+  .gh-meta {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    color: var(--text-muted);
+  }
+  .langs {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .lang-bar {
+    display: flex;
+    gap: 2px;
+    height: 0.75rem;
+  }
+  /* Largura de cada trecho vem do HTML; os trechos encolhem juntos para
+     caber os vãos de 2px entre eles. */
+  .lang-seg {
+    flex: 0 1 auto;
+    min-width: 2px;
+  }
+  .lang-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+  }
+  .lang-list li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .lang-swatch {
+    width: 0.625rem;
+    height: 0.625rem;
+  }
+  .lang-pct {
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .gh-note {
+    max-width: var(--width-measure);
+    text-wrap: pretty;
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    color: var(--text-muted);
+  }
+  /* Do mais claro ao mais escuro; "Outras" fica só no contorno. */
+  .shade-1 {
+    background: var(--text);
+  }
+  .shade-2 {
+    background: var(--text-muted);
+  }
+  .shade-3 {
+    background: color-mix(in srgb, var(--text-muted) 70%, var(--surface));
+  }
+  .shade-4 {
+    background: color-mix(in srgb, var(--text-muted) 48%, var(--surface));
+  }
+  .shade-5 {
+    background: color-mix(in srgb, var(--text-muted) 30%, var(--surface));
+  }
+  .shade-other {
+    background: var(--box);
+    box-shadow: inset 0 0 0 1px var(--border);
   }
 
   /* Contato. */

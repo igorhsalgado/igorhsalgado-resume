@@ -17,10 +17,12 @@
 
 <h2 id="layout">🎨 Layout</h2>
 
-- Tema escuro com acento âmbar (usado no `$` dos prompts, nos links e no botão principal).
+- Uma página só, em uma coluna: navegação, topo, Sobre, Projetos, Experiência, Stack, GitHub e Contato, cada seção aberta por um prompt (`$ cat sobre.md`, `$ ls ./projetos`...).
+- O conteúdo ocupa toda a largura da tela, com respiro lateral fluido (16px no celular, até 48px). Quem preenche a largura são as grades: quadros de resumo do Sobre, cards de projeto (`auto-fit` de 22rem), grupos da Stack lado a lado (a partir de 1024px) e Formação ao lado da Experiência. Texto corrido nunca passa de ~75 caracteres por linha.
+- Tema escuro com acento âmbar (usado no `$` dos prompts, nos links e no botão principal). A barra de linguagens da seção GitHub usa só tons de cinza.
 - Fontes IBM Plex Sans e IBM Plex Mono, servidas pelo próprio site.
 - A página é só HTML + CSS: nenhum JavaScript é enviado ao navegador.
-- Os cards de projeto mostram dados do GitHub (último push e estrelas) e a foto do topo é o avatar do GitHub, tudo buscado **no build**.
+- Os cards de projeto mostram dados do GitHub (último push e estrelas), a seção GitHub mostra as linguagens do código público e a foto do topo é o avatar do GitHub, tudo buscado **no build**.
 
 <h2 id="tech">💻 Tecnologias</h2>
 
@@ -69,10 +71,12 @@ Todo o texto do site sai de dois arquivos JSON, lidos e validados por `internal/
 
 | Arquivo | O que tem |
 | --- | --- |
-| `data/profile.json` | Nome, handle, título, pitch, localização, "Sobre", experiência, formação, grupos da stack e contatos. |
+| `data/profile.json` | Nome, handle, título, pitch, localização, foco (`focus`, opcional), "Sobre", experiência, formação, grupos da stack e contatos. |
 | `data/projects.json` | Projetos: `slug`, `repo` (`dono/nome` no GitHub), `title`, `description`, `tags`, `meta` e, opcionalmente, `status` (`"em-desenvolvimento"`) e `showStars` (`false` esconde as estrelas). |
 
 O build para com uma mensagem clara se faltar um campo obrigatório, se houver um campo desconhecido (um erro de digitação, por exemplo), se um `slug` não for só letras minúsculas, números e hífens ou estiver repetido, se `repo` não estiver no formato `dono/nome`, se uma linha de `meta` estiver vazia, se as URLs de contato (`linkedin`, `github`) não forem http(s) válidas ou tiverem espaços no começo ou no fim, ou se `status` tiver outro valor. Sem `status`, o projeto é tratado como concluído e o badge não aparece.
+
+Os quadros de resumo abaixo do "Sobre" saem desses mesmos dados, sem texto novo: **Atualmente** (o primeiro item de `experience`, só se o período terminar em "atual"), **Formação** (o primeiro item de `education`), **Foco** (`focus`) e **Local** (`location`). Quadro sem dado não aparece.
 
 <h3>Foto e currículo</h3>
 
@@ -84,6 +88,8 @@ Tudo o que está em `static/` é copiado como está para o site.
 <h3>Dados do GitHub</h3>
 
 Durante o build, `internal/github` consulta `https://api.github.com/repos/{repo}` para cada projeto e usa `pushed_at`, `stargazers_count`, `html_url` e `homepage`. O navegador do visitante nunca chama a API. Se a consulta falhar (sem rede, limite de taxa, repositório privado), o build segue com um aviso no log e o card mostra só o que está no JSON.
+
+A seção **GitHub** (`$ github --stats`) usa o usuário de `contact.github`: o total de repositórios públicos (`/users/{login}`) e a soma dos bytes por linguagem (`/repos/{repo}/languages`) dos repositórios públicos dele que não são fork, mais os repositórios dos projetos. As cinco maiores aparecem pelo nome, o resto vira "Outras". É tudo ou nada: se qualquer consulta falhar, a seção inteira sai da página (com um aviso no log), para nunca mostrar uma soma parcial. Ela não entra na navegação.
 
 <h3>Deploy</h3>
 
@@ -106,8 +112,9 @@ Configuração necessária (uma vez só): **Settings → Pages → Build and dep
 cmd/site/           main.go: flags, build e servidor local
 data/               profile.json e projects.json (conteúdo)
 internal/content/   tipos, leitura e validação de data/*.json
-internal/github/    cliente da API do GitHub (github.go) e avatar (avatar.go)
-internal/site/      build.go, page.go, photo.go, render.go e templates/ (HTML embutido)
+internal/github/    cliente da API do GitHub (github.go), linguagens (stats.go) e avatar (avatar.go)
+internal/site/      build.go, page.go, photo.go, summary.go (quadros e linguagens), render.go
+                    e templates/ (HTML embutido)
 internal/validate/  regras de formato compartilhadas (repositório dono/nome, URLs http(s))
 static/             style.css, favicon.svg e fonts/ (IBM Plex em woff2 + OFL.txt);
                     opcionalmente foto.jpg e cv.pdf

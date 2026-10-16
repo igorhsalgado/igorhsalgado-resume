@@ -16,9 +16,13 @@ type Page struct {
 	StyleURL    string
 	FaviconURL  string
 	// CVURL fica vazio quando não há static/cv.pdf; os botões de CV somem.
-	CVURL    string
-	Profile  content.Profile
+	CVURL   string
+	Profile content.Profile
+	// Facts são os quadros de resumo abaixo do "Sobre".
+	Facts    []Fact
 	Projects []Card
+	// Code é a seção "GitHub"; nil quando a API falha, e a seção some.
+	Code *CodeSummary
 	// Photo é nil quando não há foto; o texto do topo usa a largura toda.
 	Photo *Photo
 	Year  int

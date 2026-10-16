@@ -9,7 +9,16 @@ import (
 	"strings"
 )
 
-var repoNamePattern = regexp.MustCompile(`^[\w.-]+/[\w.-]+$`)
+var (
+	repoNamePattern = regexp.MustCompile(`^[\w.-]+/[\w.-]+$`)
+	loginPattern    = regexp.MustCompile(`^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$`)
+)
+
+// GitHubLogin informa se name é um login válido do GitHub: até 39 letras,
+// números e hífens, sem hífen nas pontas nem dois seguidos.
+func GitHubLogin(name string) bool {
+	return len(name) <= 39 && loginPattern.MatchString(name)
+}
 
 // RepoName informa se name está no formato "dono/nome". "." e ".." são
 // recusados para o nome não escapar do caminho /repos/ da API.
