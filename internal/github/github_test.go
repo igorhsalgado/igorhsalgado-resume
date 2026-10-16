@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -272,5 +274,125 @@ func TestRepoEscapesPath(t *testing.T) {
 	})
 	if _, err := c.Repo(context.Background(), "Dono.X/repo_y.go"); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// statsServer simula as rotas usadas por CodeStats. Rotas fora do mapa
+// respondem 404; fail força um status de erro numa rota.
+func statsServer(t *testing.T, routes map[string]string, fail map[string]int) *Client {
+	t.Helper()
+	return newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		key := r.URL.Path
+		if r.URL.Path == "/users/igorhsalgado/repos" {
+			q := r.URL.Query()
+			if q.Get("type") != "owner" || q.Get("per_page") != "100" {
+				t.Errorf("query = %s", r.URL.RawQuery)
+			}
+			key += "?page=" + q.Get("page")
+		}
+		if code, ok := fail[key]; ok {
+			w.Header().Set("X-RateLimit-Remaining", "0")
+			http.Error(w, `{"message":"rate limit"}`, code)
+			return
+		}
+		body, ok := routes[key]
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		w.Write([]byte(body))
+	})
+}
+
+var statsRoutes = map[string]string{
+	"/users/igorhsalgado": `{"public_repos": 5}`,
+	"/users/igorhsalgado/repos?page=1": `[
+		{"full_name": "igorhsalgado/igorhsalgado-resume", "fork": false},
+		{"full_name": "igorhsalgado/Java", "fork": false},
+		{"full_name": "igorhsalgado/um-fork", "fork": true},
+		{"full_name": "igorhsalgado/privado", "fork": false, "private": true},
+		{"full_name": "igorhsalgado/vazio", "fork": false}
+	]`,
+	"/repos/igorhsalgado/igorhsalgado-resume/languages": `{"Go": 55000, "CSS": 16000, "HTML": 9000}`,
+	"/repos/igorhsalgado/Java/languages":                `{"Java": 40000, "": 7, "Lixo": -3}`,
+	"/repos/igorhsalgado/vazio/languages":               `{}`,
+	"/repos/Equipe/projeto/languages":                   `{"Go": 1000, "TypeScript": 2000}`,
+}
+
+func TestCodeStats(t *testing.T) {
+	c := statsServer(t, statsRoutes, nil)
+	// O extra repetido (outra caixa) conta uma vez só; o inválido é ignorado.
+	got, err := c.CodeStats(context.Background(), "igorhsalgado",
+		[]string{"Equipe/projeto", "IGORHSALGADO/java", "invalido"})
+	if err != nil {
+		t.Fatalf("CodeStats: %v", err)
+	}
+	if got.PublicRepos != 5 || got.Repos != 4 {
+		t.Errorf("PublicRepos = %d, Repos = %d; want 5 e 4", got.PublicRepos, got.Repos)
+	}
+	want := map[string]int64{"Go": 56000, "CSS": 16000, "HTML": 9000, "Java": 40000, "TypeScript": 2000}
+	if len(got.Languages) != len(want) {
+		t.Errorf("Languages = %v, want %v", got.Languages, want)
+	}
+	for lang, n := range want {
+		if got.Languages[lang] != n {
+			t.Errorf("Languages[%q] = %d, want %d", lang, got.Languages[lang], n)
+		}
+	}
+}
+
+// Com 100 repositórios na primeira página, a segunda também é lida.
+func TestCodeStatsPaginates(t *testing.T) {
+	var page1 strings.Builder
+	page1.WriteString("[")
+	for i := range 100 {
+		if i > 0 {
+			page1.WriteString(",")
+		}
+		fmt.Fprintf(&page1, `{"full_name": "igorhsalgado/fork-%d", "fork": true}`, i)
+	}
+	page1.WriteString("]")
+	routes := map[string]string{
+		"/users/igorhsalgado":                  `{"public_repos": 101}`,
+		"/users/igorhsalgado/repos?page=1":     page1.String(),
+		"/users/igorhsalgado/repos?page=2":     `[{"full_name": "igorhsalgado/ultimo", "fork": false}]`,
+		"/repos/igorhsalgado/ultimo/languages": `{"Go": 10}`,
+	}
+	got, err := statsServer(t, routes, nil).CodeStats(context.Background(), "igorhsalgado", nil)
+	if err != nil {
+		t.Fatalf("CodeStats: %v", err)
+	}
+	if got.Repos != 1 || got.Languages["Go"] != 10 {
+		t.Errorf("CodeStats = %+v", got)
+	}
+}
+
+// Qualquer consulta que falhe derruba o resultado inteiro: nada de soma parcial.
+func TestCodeStatsAllOrNothing(t *testing.T) {
+	for _, route := range []string{
+		"/users/igorhsalgado",
+		"/users/igorhsalgado/repos?page=1",
+		"/repos/igorhsalgado/Java/languages",
+		"/repos/Equipe/projeto/languages",
+	} {
+		t.Run(route, func(t *testing.T) {
+			c := statsServer(t, statsRoutes, map[string]int{route: http.StatusForbidden})
+			_, err := c.CodeStats(context.Background(), "igorhsalgado", []string{"Equipe/projeto"})
+			var se *StatusError
+			if !errors.As(err, &se) || !se.RateLimited {
+				t.Errorf("err = %v, want StatusError com RateLimited", err)
+			}
+		})
+	}
+}
+
+func TestCodeStatsInvalidLoginSkipsRequest(t *testing.T) {
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("requisição inesperada para %s", r.URL)
+	})
+	for _, login := range []string{"", "../x", "a/b", "-a"} {
+		if _, err := c.CodeStats(context.Background(), login, nil); !errors.Is(err, ErrInvalidLogin) {
+			t.Errorf("CodeStats(%q) err = %v, want ErrInvalidLogin", login, err)
+		}
 	}
 }

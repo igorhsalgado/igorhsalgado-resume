@@ -22,6 +22,7 @@ import (
 // GitHub é o que o build usa da API do GitHub. *github.Client implementa.
 type GitHub interface {
 	Repo(ctx context.Context, name string) (github.Repo, error)
+	CodeStats(ctx context.Context, login string, extra []string) (github.CodeStats, error)
 	Avatar(ctx context.Context, userID int64, size int) (github.Image, error)
 }
 
@@ -34,7 +35,8 @@ type Config struct {
 	SiteURL  string // origem do site, ex.: https://igorhsalgado.github.io
 	BasePath string // caminho base, ex.: /igorhsalgado-resume
 
-	// GitHub fornece os dados dos cards e o avatar. Nil desliga os dois.
+	// GitHub fornece os dados dos cards, a seção "GitHub" e o avatar.
+	// Nil desliga os três.
 	GitHub GitHub
 	// AvatarUserID é o ID numérico do usuário cujo avatar vira a foto do topo
 	// (0 desliga). Uma foto em StaticDir sempre vence o avatar.
@@ -45,7 +47,8 @@ type Config struct {
 }
 
 // Build gera o site em cfg.OutDir. Falhas da API do GitHub não interrompem
-// o build: viram avisos no log e a página sai sem os dados automáticos.
+// o build: viram avisos no log e a página sai sem os dados automáticos (os
+// cards ficam só com o JSON e a seção "GitHub" some).
 // Já um ctx cancelado (Ctrl+C) interrompe: Build devolve ctx.Err() e não
 // grava index.html.
 func Build(ctx context.Context, cfg Config) error {
@@ -86,16 +89,20 @@ func Build(ctx context.Context, cfg Config) error {
 		StyleURL:    paths.URL("style.css") + "?v=" + shortHash(style),
 		FaviconURL:  paths.URL("favicon.svg"),
 		Profile:     c.Profile,
+		Facts:       newFacts(c.Profile),
 		Year:        cfg.Now.Year(),
 	}
 	if fileExists(filepath.Join(cfg.StaticDir, "cv.pdf")) {
 		page.CVURL = paths.URL("cv.pdf")
 	}
 
-	// Repositórios e avatar são buscados em paralelo.
+	// Repositórios, linguagens e avatar são buscados em paralelo.
 	repos := make([]*github.Repo, len(c.Projects))
 	var wg sync.WaitGroup
 	if cfg.GitHub != nil {
+		wg.Go(func() {
+			page.Code = codeSummary(ctx, cfg, c)
+		})
 		for i, p := range c.Projects {
 			wg.Go(func() {
 				repo, err := cfg.GitHub.Repo(ctx, p.Repo)
@@ -127,6 +134,28 @@ func Build(ctx context.Context, cfg Config) error {
 		return err
 	}
 	return os.WriteFile(filepath.Join(cfg.OutDir, "index.html"), html.Bytes(), 0o644)
+}
+
+// codeSummary busca as linguagens do código público do dono do perfil
+// (login tirado de contact.github) somadas às dos repositórios dos projetos.
+// Devolve nil, com um aviso, se a API falhar: a seção sai da página.
+func codeSummary(ctx context.Context, cfg Config, c *content.Content) *CodeSummary {
+	profileURL := c.Profile.Contact.GitHub
+	login, ok := githubLogin(profileURL)
+	if !ok {
+		cfg.Logger.Warn("contact.github não é um perfil do GitHub; seção GitHub sai da página", "url", profileURL)
+		return nil
+	}
+	extra := make([]string, len(c.Projects))
+	for i, p := range c.Projects {
+		extra[i] = p.Repo
+	}
+	stats, err := cfg.GitHub.CodeStats(ctx, login, extra)
+	if err != nil {
+		cfg.Logger.Warn("linguagens do GitHub indisponíveis; seção GitHub sai da página", "err", err)
+		return nil
+	}
+	return newCodeSummary(login, profileURL, stats)
 }
 
 // checkOutDir recusa um OutDir que se sobreponha ao diretório atual, a

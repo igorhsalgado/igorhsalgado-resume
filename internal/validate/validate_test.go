@@ -46,3 +46,25 @@ func TestHTTPURL(t *testing.T) {
 		}
 	}
 }
+
+func TestGitHubLogin(t *testing.T) {
+	for name, want := range map[string]bool{
+		"igorhsalgado":      true,
+		"The-Smart-Booking": true,
+		"a":                 true,
+		"":                  false,
+		"-a":                false,
+		"a-":                false,
+		"a--b":              false,
+		"a_b":               false,
+		"a/b":               false,
+		"../x":              false,
+		"a.b":               false,
+		"abcdefghijabcdefghijabcdefghij123456789":  true,
+		"abcdefghijabcdefghijabcdefghij1234567890": false,
+	} {
+		if got := GitHubLogin(name); got != want {
+			t.Errorf("GitHubLogin(%q) = %v, want %v", name, got, want)
+		}
+	}
+}

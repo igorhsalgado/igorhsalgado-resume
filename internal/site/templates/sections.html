@@ -7,6 +7,20 @@
           <div class="container flow">
             {{template "section-heading" heading "sobre-title" "cat sobre.md" "Sobre"}}
             <p class="measure">{{.Profile.About}}</p>
+            {{- with .Facts}}
+
+            <dl class="facts">
+              {{- range .}}
+              <div class="fact">
+                <dt class="label">{{.Label}}</dt>
+                <dd class="fact-value">{{.Value}}</dd>
+                {{- with .Detail}}
+                <dd class="fact-detail">{{.}}</dd>
+                {{- end}}
+              </div>
+              {{- end}}
+            </dl>
+            {{- end}}
           </div>
         </section>
 {{- end}}
@@ -28,26 +42,29 @@
         <section id="experiencia" aria-labelledby="experiencia-title" class="band section">
           <div class="container flow">
             {{template "section-heading" heading "experiencia-title" "cat experiencia.md" "Experiência"}}
-            {{- range .Profile.Experience}}
-
-            <article class="job">
-              <div>
-                <h3 class="job-role">{{.Role}}</h3>
-                <p class="job-org">{{.Company}} · {{.Period}}</p>
-              </div>
-              <ul class="job-highlights">
-                {{- range .Highlights}}
-                <li>{{.}}</li>
+            <div class="xp">
+              <div class="flow">
+                {{- range .Profile.Experience}}
+                <article class="job">
+                  <div>
+                    <h3 class="job-role">{{.Role}}</h3>
+                    <p class="job-org">{{.Company}} · {{.Period}}</p>
+                  </div>
+                  <ul class="job-highlights">
+                    {{- range .Highlights}}
+                    <li>{{.}}</li>
+                    {{- end}}
+                  </ul>
+                </article>
                 {{- end}}
-              </ul>
-            </article>
-            {{- end}}
+              </div>
 
-            <div class="education">
-              <h3 class="label">Formação</h3>
-              {{- range .Profile.Education}}
-              <p>{{.Course}} — {{.Institution}}{{with .Detail}}<span> · {{.}}</span>{{end}}</p>
-              {{- end}}
+              <div class="education">
+                <h3 class="label">Formação</h3>
+                {{- range .Profile.Education}}
+                <p>{{.Course}} — {{.Institution}}{{with .Detail}}<span> · {{.}}</span>{{end}}</p>
+                {{- end}}
+              </div>
             </div>
           </div>
         </section>
@@ -59,19 +76,48 @@
             {{template "section-heading" heading "stack-title" "stack --list" "Stack"}}
             <dl class="stack-list">
               {{- range .Profile.Stack}}
-              <dt class="stack-label">{{.Label}}</dt>
-              <dd>
-                <ul class="chips">
-                  {{- $class := "chip"}}{{if .Secondary}}{{$class = "chip chip-secondary"}}{{end}}
-                  {{- range .Items}}
-                  <li class="{{$class}}">{{.}}</li>
-                  {{- end}}
-                </ul>
-              </dd>
+              <div class="stack-group">
+                <dt class="stack-label">{{.Label}}</dt>
+                <dd>
+                  <ul class="chips">
+                    {{- $class := "chip"}}{{if .Secondary}}{{$class = "chip chip-secondary"}}{{end}}
+                    {{- range .Items}}
+                    <li class="{{$class}}">{{.}}</li>
+                    {{- end}}
+                  </ul>
+                </dd>
+              </div>
               {{- end}}
             </dl>
           </div>
         </section>
+{{- end}}
+
+{{/* Seção "GitHub": só existe quando a API respondeu (Page.Code não é nil). */}}
+{{define "github"}}
+        {{- with .Code}}
+        <section id="github" aria-labelledby="github-title" class="band section">
+          <div class="container flow">
+            {{template "section-heading" heading "github-title" "github --stats" "GitHub"}}
+            <p class="gh-meta"><a href="{{.ProfileURL}}" rel="me noopener">github.com/{{.Login}}</a><span aria-hidden="true"> · </span><span>{{.PublicRepos}} {{if eq .PublicRepos 1}}repositório público{{else}}repositórios públicos{{end}}</span></p>
+
+            <div class="langs">
+              <h3 id="linguagens-title" class="label">Linguagens</h3>
+              <div class="lang-bar" aria-hidden="true">
+                {{- range .Languages}}
+                <span class="lang-seg shade-{{.Shade}}" style="width: {{.Width}}"></span>
+                {{- end}}
+              </div>
+              <ul class="lang-list" aria-labelledby="linguagens-title">
+                {{- range .Languages}}
+                <li><span class="lang-swatch shade-{{.Shade}}" aria-hidden="true"></span>{{.Name}} <span class="lang-pct">{{.Percent}}</span></li>
+                {{- end}}
+              </ul>
+              <p class="gh-note">Por bytes de código em {{.Repos}} {{if eq .Repos 1}}repositório{{else}}repositórios{{end}}: os públicos de {{.Login}}, sem forks, e os dos projetos acima.</p>
+            </div>
+          </div>
+        </section>
+        {{- end}}
 {{- end}}
 
 {{define "contact"}}

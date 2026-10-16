@@ -1,6 +1,6 @@
 // Package github busca, durante o build, os dados públicos que o site mostra:
-// metadados de repositórios (último push, estrelas, links) e o avatar do
-// usuário. O navegador do visitante nunca fala com a API.
+// metadados de repositórios (último push, estrelas, links), as linguagens do
+// código público do usuário e o avatar dele. O navegador do visitante nunca fala com a API.
 //
 // Os métodos devolvem erro em qualquer falha (rede, timeout, HTTP de erro,
 // JSON inesperado). Quem chama decide o fallback; o build registra um aviso e
@@ -102,29 +102,8 @@ var ErrInvalidRepo = errors.New("nome de repositório inválido")
 
 // Repo busca os metadados públicos de um repositório ("dono/nome").
 func (c *Client) Repo(ctx context.Context, name string) (Repo, error) {
-	if !validate.RepoName(name) {
-		return Repo{}, fmt.Errorf("%w: %q", ErrInvalidRepo, name)
-	}
-	owner, repoName, _ := strings.Cut(name, "/")
-	endpoint := orDefault(c.APIURL, DefaultAPIURL) + "/repos/" + url.PathEscape(owner) + "/" + url.PathEscape(repoName)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	path, err := repoPath(name)
 	if err != nil {
-		return Repo{}, err
-	}
-	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
-	req.Header.Set("User-Agent", userAgent)
-	if c.Token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.Token)
-	}
-
-	resp, err := c.do(req)
-	if err != nil {
-		return Repo{}, err
-	}
-	defer resp.Body.Close()
-	if err := checkStatus(resp); err != nil {
 		return Repo{}, err
 	}
 
@@ -134,8 +113,8 @@ func (c *Client) Repo(ctx context.Context, name string) (Repo, error) {
 		HTMLURL         string `json:"html_url"`
 		Homepage        string `json:"homepage"`
 	}
-	if err := json.NewDecoder(io.LimitReader(resp.Body, maxJSONBytes)).Decode(&body); err != nil {
-		return Repo{}, fmt.Errorf("resposta inválida: %w", err)
+	if err := c.getJSON(ctx, path, nil, &body); err != nil {
+		return Repo{}, err
 	}
 
 	repo := Repo{Stars: max(body.StargazersCount, 0)}
@@ -146,6 +125,48 @@ func (c *Client) Repo(ctx context.Context, name string) (Repo, error) {
 		repo.PushedAt = t
 	}
 	return repo, nil
+}
+
+// repoPath valida name ("dono/nome") e devolve o caminho /repos/dono/nome,
+// com cada parte escapada.
+func repoPath(name string) (string, error) {
+	if !validate.RepoName(name) {
+		return "", fmt.Errorf("%w: %q", ErrInvalidRepo, name)
+	}
+	owner, repoName, _ := strings.Cut(name, "/")
+	return "/repos/" + url.PathEscape(owner) + "/" + url.PathEscape(repoName), nil
+}
+
+// getJSON faz um GET em path (relativo à raiz da API), com query opcional,
+// e decodifica a resposta em v.
+func (c *Client) getJSON(ctx context.Context, path string, query url.Values, v any) error {
+	endpoint := orDefault(c.APIURL, DefaultAPIURL) + path
+	if len(query) > 0 {
+		endpoint += "?" + query.Encode()
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+	req.Header.Set("User-Agent", userAgent)
+	if c.Token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.Token)
+	}
+
+	resp, err := c.do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if err := checkStatus(resp); err != nil {
+		return err
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, maxJSONBytes)).Decode(v); err != nil {
+		return fmt.Errorf("resposta inválida: %w", err)
+	}
+	return nil
 }
 
 func checkStatus(resp *http.Response) error {
