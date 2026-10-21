@@ -17,30 +17,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup Go
-        uses: actions/setup-go@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
-          go-version-file: go.mod
-          cache: true
-          # Sem dependências externas não há go.sum; o cache usa o go.mod.
-          cache-dependency-path: go.mod
+          node-version-file: .nvmrc
+          cache: npm
 
-      - name: gofmt
-        run: |
-          unformatted="$(gofmt -l .)"
-          if [ -n "$unformatted" ]; then
-            echo "Arquivos fora do gofmt:"
-            echo "$unformatted"
-            exit 1
-          fi
+      - name: Instalar dependências
+        run: npm ci
 
-      - name: go vet
-        run: go vet ./...
+      - name: Tipos (tsc)
+        run: npm run typecheck
 
-      - name: go test
-        run: go test -race ./...
+      - name: Testes (vitest)
+        run: npm test
 
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: go run ./cmd/site -out dist
+        run: npm run build
+
+      - name: Sem JavaScript no site
+        run: |
+          if find dist -name '*.js' -o -name '*.mjs' | grep -q . || grep -qi '<script' dist/index.html; then
+            echo "O site gerado não deveria enviar JavaScript ao navegador."
+            exit 1
+          fi
