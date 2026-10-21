@@ -24,20 +24,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup Go
-        uses: actions/setup-go@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
-          go-version-file: go.mod
-          cache: true
-          # Sem dependências externas não há go.sum; o cache usa o go.mod.
-          cache-dependency-path: go.mod
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
 
       - name: Gerar o site
         env:
           # Limite de requisições maior na API do GitHub durante o build.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # -site e -base usam os padrões (https://igorhsalgado.github.io e /igorhsalgado-resume).
-        run: go run ./cmd/site -out dist
+        # --site e --base usam os padrões (https://igorhsalgado.github.io e /igorhsalgado-resume).
+        run: npm run build
 
       - name: Upload do site
         uses: actions/upload-pages-artifact@v5
