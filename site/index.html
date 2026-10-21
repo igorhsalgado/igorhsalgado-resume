@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#1E2226">
+  <title>Igor Hermann Salgado · Desenvolvedor Backend</title>
+  <meta name="description" content="Igor Hermann Salgado, desenvolvedor backend em Vitória (ES). Construo APIs e sistemas backend com Go, Java e PostgreSQL.">
+  <link rel="canonical" href="https://igorhsalgado.github.io/igorhsalgado-resume/">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <!-- Prévia do link em redes sociais -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Igor Hermann Salgado">
+  <meta property="og:title" content="Igor Hermann Salgado · Desenvolvedor Backend">
+  <meta property="og:description" content="Igor Hermann Salgado, desenvolvedor backend em Vitória (ES). Construo APIs e sistemas backend com Go, Java e PostgreSQL.">
+  <meta property="og:url" content="https://igorhsalgado.github.io/igorhsalgado-resume/">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
+
+  <div class="page">
+    <!-- Cabeçalho com a navegação -->
+    <header class="band band-tight site-header">
+      <nav class="container nav" aria-label="Navegação principal">
+        <a href="#inicio" class="nav-brand">igor@salgado<span class="nav-brand-prompt" aria-hidden="true">:~$</span></a>
+        <ul class="nav-links">
+          <li class="nav-item">
+            <a href="#sobre" class="nav-link">Sobre</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+          </li>
+          <li class="nav-item">
+            <a href="#projetos" class="nav-link">Projetos</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+          </li>
+          <li class="nav-item">
+            <a href="#experiencia" class="nav-link">Experiência</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+          </li>
+          <li class="nav-item">
+            <a href="#stack" class="nav-link">Stack</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+          </li>
+          <li class="nav-item">
+            <a href="#contato" class="nav-link">Contato</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="conteudo">
+      <!-- Início: nome, título e foto -->
+      <section id="inicio" class="band" aria-labelledby="hero-title">
+        <div class="container flow">
+          <p class="prompt" aria-hidden="true"><span class="ps">$</span>whoami</p>
+
+          <div class="hero-grid">
+            <div class="flow hero-text">
+              <div>
+                <h1 id="hero-title" class="hero-title">Igor Hermann Salgado</h1>
+                <p class="hero-headline">Desenvolvedor Backend · Go, Java e PostgreSQL</p>
+              </div>
+
+              <p class="hero-pitch">Construo APIs e sistemas backend com Go, Java e PostgreSQL.</p>
+
+              <div class="hero-actions">
+                <a class="btn btn-primary" href="#projetos">Ver projetos</a>
+                <a class="btn btn-box" href="https://github.com/igorhsalgado" rel="me noopener"><span aria-hidden="true">↗</span>GitHub</a>
+                <a class="btn btn-box" href="https://www.linkedin.com/in/igorhsalgado" rel="me noopener"><span aria-hidden="true">↗</span>LinkedIn</a>
+              </div>
+
+              <p class="hero-location">Vitória (ES)</p>
+            </div>
+
+            <img class="hero-photo" src="img/avatar-144.jpg" srcset="img/avatar-144.jpg 1x, img/avatar-288.jpg 2x" alt="Foto de Igor Hermann Salgado" width="144" height="144">
+          </div>
+        </div>
+      </section>
+
+      <!-- Sobre: texto curto e quadros de resumo -->
+      <section id="sobre" class="band section" aria-labelledby="sobre-title">
+        <div class="container flow">
+          <h2 id="sobre-title" class="prompt">
+            <span aria-hidden="true"><span class="ps">$</span>cat sobre.md</span>
+            <span class="sr-only">Sobre</span>
+          </h2>
+
+          <p class="measure">Sou estudante do 4º período de Análise e Desenvolvimento de Sistemas na FAESA. Meu foco é backend com Go e Java, bancos PostgreSQL e integração entre serviços, com interesse especial em sistemas multi-tenant. Hoje atuo como estagiário Desenvolvedor Power Platform, entregando um app em produção do levantamento ao deploy.</p>
+
+          <dl class="facts">
+            <div class="fact">
+              <dt class="label">Atualmente</dt>
+              <dd class="fact-value">Desenvolvedor Power Platform — Estágio</dd>
+              <dd class="fact-detail">Prosperi · mar/2026 – atual</dd>
+            </div>
+            <div class="fact">
+              <dt class="label">Formação</dt>
+              <dd class="fact-value">Análise e Desenvolvimento de Sistemas</dd>
+              <dd class="fact-detail">FAESA · 4º período</dd>
+            </div>
+            <div class="fact">
+              <dt class="label">Foco</dt>
+              <dd class="fact-value">Backend, integração entre serviços e sistemas multi-tenant</dd>
+            </div>
+            <div class="fact">
+              <dt class="label">Local</dt>
+              <dd class="fact-value">Vitória (ES)</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- Projetos: um card por projeto (dados do GitHub de 21/10/2026) -->
+      <section id="projetos" class="band section" aria-labelledby="projetos-title">
+        <div class="container flow">
+          <h2 id="projetos-title" class="prompt">
+            <span aria-hidden="true"><span class="ps">$</span>ls ./projetos</span>
+            <span class="sr-only">Projetos</span>
+          </h2>
+
+          <div class="project-grid">
+            <article class="card" aria-labelledby="proj-smart-booking">
+              <h3 id="proj-smart-booking" class="card-title" aria-label="Smart Booking"><span class="card-title-prefix">./</span>smart-booking/</h3>
+              <span class="status"><span aria-hidden="true">●</span> em desenvolvimento</span>
+              <p>Plataforma multi-tenant de agendamentos com notificações via Telegram.</p>
+              <ul class="tags" aria-label="Tecnologias">
+                <li class="tag">Go</li>
+                <li class="tag">React</li>
+                <li class="tag">PostgreSQL</li>
+                <li class="tag">Telegram</li>
+              </ul>
+              <p class="card-meta">
+                <span>equipe de 3</span>
+                <span aria-hidden="true">·</span>
+                <span>último push: <time datetime="2026-10-19T18:31:33Z">19 de out. de 2026</time></span>
+                <span aria-hidden="true">·</span>
+                <span><span aria-hidden="true">★ 1</span><span class="sr-only">1 estrela no GitHub</span></span>
+              </p>
+              <div class="card-links">
+                <a href="https://github.com/The-Smart-Booking/thesmartbooking" rel="noopener">Repositório<span class="sr-only"> de Smart Booking no GitHub</span></a>
+              </div>
+            </article>
+
+            <article class="card" aria-labelledby="proj-market-faesa">
+              <h3 id="proj-market-faesa" class="card-title" aria-label="MarketFaesa"><span class="card-title-prefix">./</span>market-faesa/</h3>
+              <span class="status"><span aria-hidden="true">●</span> em desenvolvimento</span>
+              <p>Marketplace universitário para alunos da FAESA. Construí a base do backend: API em Spring Boot com autenticação JWT, Spring Security e migrações Flyway.</p>
+              <ul class="tags" aria-label="Tecnologias">
+                <li class="tag">Java</li>
+                <li class="tag">Spring Boot</li>
+                <li class="tag">PostgreSQL</li>
+                <li class="tag">React</li>
+              </ul>
+              <p class="card-meta">
+                <span>projeto em equipe</span>
+                <span aria-hidden="true">·</span>
+                <span>minha parte: backend</span>
+                <span aria-hidden="true">·</span>
+                <span>último push: <time datetime="2026-10-14T19:07:47Z">14 de out. de 2026</time></span>
+              </p>
+              <div class="card-links">
+                <a href="https://github.com/ArthurNunesDev/Projeto-Integrador-Computacional" rel="noopener">Repositório<span class="sr-only"> de MarketFaesa no GitHub</span></a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Experiência e formação -->
+      <section id="experiencia" class="band section" aria-labelledby="experiencia-title">
+        <div class="container flow">
+          <h2 id="experiencia-title" class="prompt">
+            <span aria-hidden="true"><span class="ps">$</span>cat experiencia.md</span>
+            <span class="sr-only">Experiência</span>
+          </h2>
+
+          <div class="xp">
+            <article class="job">
+              <div>
+                <h3 class="job-role">Desenvolvedor Power Platform — Estágio</h3>
+                <p class="job-org">Prosperi · mar/2026 – atual</p>
+              </div>
+              <ul class="job-highlights">
+                <li>Desenvolvedor principal de um aplicativo de gestão de projetos Capex para uma rede hospitalar, do levantamento de requisitos ao deploy em produção. Único desenvolvedor presente em todo o ciclo do projeto.</li>
+                <li>Implementação das regras de negócio e adaptações específicas da rede, permitindo que os usuários conduzam a gestão dos projetos Capex dentro do app.</li>
+                <li>Stack: Power Apps, SharePoint e Power Automate.</li>
+              </ul>
+            </article>
+
+            <div class="education">
+              <h3 class="label">Formação</h3>
+              <p>Análise e Desenvolvimento de Sistemas — FAESA<span> · 4º período</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stack: tecnologias agrupadas -->
+      <section id="stack" class="band section" aria-labelledby="stack-title">
+        <div class="container flow">
+          <h2 id="stack-title" class="prompt">
+            <span aria-hidden="true"><span class="ps">$</span>stack --list</span>
+            <span class="sr-only">Stack</span>
+          </h2>
+
+          <dl class="stack-list">
+            <div class="stack-group">
+              <dt class="stack-label">Linguagens</dt>
+              <dd>
+                <ul class="chips">
+                  <li class="chip">Go</li>
+                  <li class="chip">Java</li>
+                </ul>
+              </dd>
+            </div>
+            <div class="stack-group">
+              <dt class="stack-label">Bancos</dt>
+              <dd>
+                <ul class="chips">
+                  <li class="chip">PostgreSQL</li>
+                </ul>
+              </dd>
+            </div>
+            <div class="stack-group">
+              <dt class="stack-label">Frameworks</dt>
+              <dd>
+                <ul class="chips">
+                  <li class="chip">Spring</li>
+                </ul>
+              </dd>
+            </div>
+            <div class="stack-group">
+              <dt class="stack-label">Ferramentas</dt>
+              <dd>
+                <ul class="chips">
+                  <li class="chip">Git</li>
+                  <li class="chip">Docker</li>
+                </ul>
+              </dd>
+            </div>
+            <div class="stack-group">
+              <dt class="stack-label">Também uso</dt>
+              <dd>
+                <ul class="chips">
+                  <li class="chip chip-secondary">React</li>
+                  <li class="chip chip-secondary">Power Platform</li>
+                </ul>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- GitHub: linguagens do código público (congelado em 21/10/2026) -->
+      <section id="github" class="band section" aria-labelledby="github-title">
+        <div class="container flow">
+          <h2 id="github-title" class="prompt">
+            <span aria-hidden="true"><span class="ps">$</span>github --stats</span>
+            <span class="sr-only">GitHub</span>
+          </h2>
+
+          <p class="gh-meta">
+            <a href="https://github.com/igorhsalgado" rel="me noopener">github.com/igorhsalgado</a>
+            <span aria-hidden="true">·</span>
+            <span>7 repositórios públicos</span>
+          </p>
+
+          <div class="langs">
+            <h3 id="linguagens-title" class="label">Linguagens</h3>
+
+            <!-- Barra proporcional: a largura de cada trecho é a porcentagem -->
+            <div class="lang-bar" aria-hidden="true">
+              <span class="lang-seg shade-1" style="width: 23.9%"></span>
+              <span class="lang-seg shade-2" style="width: 22.6%"></span>
+              <span class="lang-seg shade-3" style="width: 19.4%"></span>
+              <span class="lang-seg shade-4" style="width: 15.7%"></span>
+              <span class="lang-seg shade-5" style="width: 9.1%"></span>
+              <span class="lang-seg shade-other" style="width: 9.3%"></span>
+            </div>
+
+            <ul class="lang-list" aria-labelledby="linguagens-title">
+              <li><span class="lang-swatch shade-1" aria-hidden="true"></span>Java <span class="lang-pct">23,9%</span></li>
+              <li><span class="lang-swatch shade-2" aria-hidden="true"></span>JavaScript <span class="lang-pct">22,6%</span></li>
+              <li><span class="lang-swatch shade-3" aria-hidden="true"></span>SCSS <span class="lang-pct">19,4%</span></li>
+              <li><span class="lang-swatch shade-4" aria-hidden="true"></span>TypeScript <span class="lang-pct">15,7%</span></li>
+              <li><span class="lang-swatch shade-5" aria-hidden="true"></span>Go <span class="lang-pct">9,1%</span></li>
+              <li><span class="lang-swatch shade-other" aria-hidden="true"></span>Outras <span class="lang-pct">9,3%</span></li>
+            </ul>
+
+            <p class="gh-note">Por bytes de código em 7 repositórios: os públicos de igorhsalgado, sem forks, e os dos projetos acima. Dados de 21/10/2026.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contato -->
+      <section id="contato" class="band section" aria-labelledby="contato-title">
+        <div class="container flow">
+          <h2 id="contato-title" class="prompt">
+            <span aria-hidden="true"><span class="ps">$</span>contato</span>
+            <span class="sr-only">Contato</span>
+          </h2>
+
+          <ul class="contact-list">
+            <li><a href="mailto:igorhermannsalgado@gmail.com" id="email">igorhermannsalgado@gmail.com</a></li>
+            <!-- Botão de copiar: só aparece com JavaScript ligado (script.js) -->
+            <li hidden data-copy-item>
+              <button type="button" class="btn btn-box" data-copy="igorhermannsalgado@gmail.com">copiar e-mail</button>
+              <span class="copy-status" role="status" aria-live="polite"></span>
+            </li>
+            <li><a href="https://www.linkedin.com/in/igorhsalgado" rel="me noopener">LinkedIn</a></li>
+            <li><a href="https://github.com/igorhsalgado" rel="me noopener">GitHub</a></li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="band band-tight site-footer">
+      <div class="container footer-row">
+        <span>© 2026 Igor Hermann Salgado · feito com HTML, CSS e JavaScript</span>
+        <a href="#inicio" class="footer-top">↑ topo</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Botão flutuante de voltar ao topo: só aparece com JavaScript ligado -->
+  <button type="button" class="btn btn-box to-top" hidden><span aria-hidden="true">↑</span>topo</button>
+</body>
+</html>

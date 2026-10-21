@@ -1,22 +1,16 @@
 /*
- * Estilos do portfólio. CSS puro, sem build.
+ * Estilos do portfólio. CSS puro, escrito à mão.
  *
- * O site é só escuro: todo visitante recebe esta paleta, independente da
- * preferência de tema do sistema. Paleta neutra (cinzas) com um único destaque
- * âmbar, usado só no caractere `$` dos prompts, nos links de texto e no botão
- * principal. Badges, chips, tags, bordas e botões secundários ficam em cinza.
+ * O site é só escuro: paleta neutra (cinzas) com um único destaque âmbar,
+ * usado no caractere `$` dos prompts, nos links de texto e no botão principal.
  *
- * A barra de linguagens da seção GitHub também fica nos cinzas: tons de
- * --text-muted misturados com --surface, nada de âmbar nem cor nova.
- *
- * Texto em dois tons só, por função:
+ * Texto em dois tons:
  *   --text: nome, títulos, comandos dos prompts, parágrafos, listas, chips;
- *   --text-muted: tudo o que é secundário (cargo, local, navegação, ./,
- *   rótulos, tags, status, metadados, empresa e período, rodapé).
+ *   --text-muted: o que é secundário (cargo, local, navegação, rótulos, tags,
+ *   status, metadados, rodapé).
  * Contraste mínimo de texto: 4.5:1 sobre --surface.
  *
- * Organização: as camadas (@layer) abaixo definem a precedência, da mais fraca
- * para a mais forte. Regras fora de camada vencem todas elas.
+ * As camadas (@layer) definem a precedência, da mais fraca para a mais forte.
  */
 @layer reset, base, components, utilities;
 
@@ -98,16 +92,7 @@
   color-scheme: dark;
 }
 
-/*
- * Cor do texto e fundo da página fora de @layer, de propósito. CSS sem camada
- * vence qualquer CSS em camada, então um `body { color }` injetado por quem
- * hospeda a página (ex.: um visualizador embutido em tema claro) ganharia das
- * camadas e todo texto sem cor própria herdaria preto. `:root` e `:root body`
- * também vencem `html`/`body` simples por especificidade, seja qual for a
- * ordem das folhas de estilo.
- * Só html e body: regras de cor em elementos (p, li...) aqui fora venceriam as
- * cores dos componentes, que vivem em camadas.
- */
+/* Cor e fundo da página fora de @layer, para vencer qualquer estilo externo. */
 :root,
 :root body {
   color: var(--text);
@@ -151,6 +136,13 @@
     max-width: 100%;
     height: auto;
   }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    cursor: pointer;
+  }
 }
 
 @layer base {
@@ -192,9 +184,14 @@
     outline-offset: 3px;
   }
 
-  /* Âncoras não ficam coladas no topo da janela. */
+  /* Âncoras não ficam escondidas atrás do cabeçalho fixo. */
   [id] {
-    scroll-margin-top: 1.5rem;
+    scroll-margin-top: 5rem;
+  }
+  @media (max-width: 760px) {
+    [id] {
+      scroll-margin-top: 8rem;
+    }
   }
 }
 
@@ -300,14 +297,14 @@
     border-color: var(--text-muted);
     background: var(--box);
   }
-  .btn-small {
-    padding: 0.25rem 0.75rem;
-    font-size: var(--text-xs);
-    line-height: var(--leading-xs);
-  }
 
   /* Cabeçalho e navegação. */
+  /* O cabeçalho fica preso no topo, para a navegação mostrar a seção atual. */
   .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--surface);
     border-bottom: 1px solid var(--border);
   }
   .nav {
@@ -346,6 +343,12 @@
     color: var(--text-muted);
     text-decoration-line: none;
   }
+  /* Seção visível no momento (marcada pelo script.js). */
+  .nav-link.is-active {
+    color: var(--text);
+    text-decoration-line: underline;
+    text-decoration-color: var(--accent);
+  }
   .nav-sep {
     color: var(--border);
   }
@@ -356,18 +359,14 @@
     }
   }
 
-  /* Topo: texto + foto opcional logo à direita dele (não na borda da tela);
+  /* Topo: texto + foto logo à direita dele (não na borda da tela);
      no celular a foto sobe para cima do nome. */
   .hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
-    align-items: start;
-  }
-  .hero-grid.has-photo {
     grid-template-columns: minmax(0, auto) 9rem;
     justify-content: start;
-    column-gap: 2.5rem;
+    gap: 1.5rem 2.5rem;
+    align-items: start;
   }
   .hero-text {
     min-width: 0;
@@ -410,7 +409,7 @@
     border: 1px solid var(--border);
   }
   @media (max-width: 760px) {
-    .hero-grid.has-photo {
+    .hero-grid {
       grid-template-columns: minmax(0, 1fr);
     }
     .hero-photo {
@@ -728,6 +727,26 @@
     line-height: var(--leading-sm);
   }
 
+  .contact-list li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  /* Aviso "copiado!" ao lado do botão. */
+  .copy-status {
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+  }
+
+  /* Botão flutuante de voltar ao topo (aparece depois de rolar). */
+  .to-top {
+    position: fixed;
+    right: max(var(--gutter), env(safe-area-inset-right, 0px));
+    bottom: 1rem;
+    z-index: 5;
+  }
+
   /* Rodapé. */
   .site-footer {
     border-top: 1px solid var(--border);
@@ -753,6 +772,11 @@
 }
 
 @layer utilities {
+  /* Elementos com o atributo hidden somem, mesmo que a classe defina display. */
+  [hidden] {
+    display: none !important;
+  }
+
   /* Visível só para leitores de tela. */
   .sr-only {
     position: absolute;
