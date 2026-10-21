@@ -17,29 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - name: Instalar dependências
-        run: npm ci
-
-      - name: Tipos (tsc)
-        run: npm run typecheck
-
-      - name: Testes (vitest)
-        run: npm test
-
-      - name: Build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build
-
-      - name: Sem JavaScript no site
-        run: |
-          if find dist -name '*.js' -o -name '*.mjs' | grep -q . || grep -qi '<script' dist/index.html; then
-            echo "O site gerado não deveria enviar JavaScript ao navegador."
-            exit 1
-          fi
+      # Tags bem fechadas, ids únicos, links internos e arquivos locais existentes,
+      # nada carregado de outro site. Só Python, sem dependências.
+      - name: Verificar o site
+        run: python3 .github/scripts/verificar_site.py site

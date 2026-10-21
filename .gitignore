@@ -1,15 +1,3 @@
-# site gerado (npm run build)
-dist/
-# build intermediário do Vite (o gerador compilado que roda no Node)
-.ssr/
-
-# dependências
-node_modules/
-
-# env
-.env
-.env.*
-
 # OS / editor
 .DS_Store
 .vscode/*
