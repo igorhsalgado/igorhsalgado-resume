@@ -570,7 +570,13 @@
       grid-template-columns: minmax(0, calc(var(--width-list) + 3rem)) minmax(16rem, 1fr);
       gap: 1rem 2.5rem;
     }
+    /* Cargos sempre na primeira coluna; a formação ocupa a segunda ao lado deles. */
+    .job {
+      grid-column: 1;
+    }
     .education {
+      grid-column: 2;
+      grid-row: 1 / span 2;
       border-top: 0;
       padding-top: 0;
       border-left: 1px dashed var(--border);
