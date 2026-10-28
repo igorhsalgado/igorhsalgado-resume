@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-    <b>Portfólio de Igor Hermann Salgado, desenvolvedor backend (Go, Java e PostgreSQL). Site de uma página feito só com HTML, CSS e JavaScript, escritos à mão, sem build e sem dependências.</b>
+    <b>Portfólio de Igor Hermann Salgado, desenvolvedor fullstack (.NET e Angular; Go, Java e PostgreSQL nos projetos). Site de uma página feito só com HTML, CSS e JavaScript, escritos à mão, sem build e sem dependências.</b>
 </p>
 
 <p align="center">
