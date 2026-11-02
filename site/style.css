@@ -81,12 +81,14 @@
   --text-hero: clamp(1.75rem, 4vw, 2.5rem);
   --leading-hero: 1.15;
 
-  /* O conteúdo ocupa a largura toda da tela; o que não estica é a linha de
-     texto corrido, sempre com no máximo ~75 caracteres. */
+  /* As faixas (fundo e as linhas do cabeçalho e do rodapé) vão de ponta a ponta
+     da tela; o conteúdo fica numa coluna centralizada de no máximo
+     --container-max, e a linha de texto corrido tem no máximo ~68 caracteres. */
   --gutter: clamp(1rem, 3vw, 3rem); /* respiro lateral: 16px no celular, até 48px */
-  --width-measure: 75ch;
+  --container-max: 70rem; /* 1120px de conteúdo, sem contar o respiro lateral */
+  --width-measure: 68ch;
   --width-pitch: 52ch;
-  --width-list: 75ch;
+  --width-list: 68ch;
 
   /* Barras de rolagem e controles nativos no tema escuro. */
   color-scheme: dark;
@@ -196,7 +198,7 @@
 }
 
 @layer components {
-  /* Página: ocupa a tela inteira, sem moldura. A cor declarada aqui (e não só
+  /* Página: o fundo ocupa a tela inteira, sem moldura. A cor declarada aqui (e não só
      herdada do body) protege o conteúdo mesmo se o body receber outra cor. */
   .page {
     min-height: 100vh;
@@ -204,18 +206,21 @@
     color: var(--text);
   }
 
-  /* Faixas da página (nav, seções, rodapé): vão de ponta a ponta da tela, e as
-     linhas entre elas também. O conteúdo de cada uma fica num .container. */
+  /* Faixas da página (nav, seções, rodapé): vão de ponta a ponta da tela, assim
+     como as linhas do cabeçalho e do rodapé. O conteúdo de cada uma fica num
+     .container. */
   .band {
     padding-block: 2.25rem;
   }
   .band-tight {
     padding-block: 1rem;
   }
-  /* Miolo de cada faixa: toda a largura da tela, só com o respiro lateral.
-     Nav, seções e rodapé alinham pela mesma borda. */
+  /* Miolo de cada faixa: coluna centralizada de até --container-max (mais o
+     respiro lateral). Nav, seções e rodapé alinham pela mesma borda. */
   .container {
     width: 100%;
+    max-width: calc(var(--container-max) + 2 * var(--gutter));
+    margin-inline: auto;
     padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px))
       max(var(--gutter), env(safe-area-inset-right, 0px));
   }
@@ -234,8 +239,10 @@
     gap: 1rem;
   }
 
+  /* Seções sem linha divisória: a borda continua com 1px, só que transparente,
+     para manter o mesmo espaçamento vertical de antes. */
   .section {
-    border-top: 1px solid var(--border);
+    border-top: 1px solid transparent;
   }
 
   /* Prompt de terminal que abre cada seção. */
