@@ -81,9 +81,9 @@
   --text-hero: clamp(1.75rem, 4vw, 2.5rem);
   --leading-hero: 1.15;
 
-  /* As faixas (fundo e linhas) vão de ponta a ponta da tela; o conteúdo fica
-     numa coluna centralizada de no máximo --container-max, e a linha de texto
-     corrido tem no máximo ~68 caracteres. */
+  /* As faixas (fundo e as linhas do cabeçalho e do rodapé) vão de ponta a ponta
+     da tela; o conteúdo fica numa coluna centralizada de no máximo
+     --container-max, e a linha de texto corrido tem no máximo ~68 caracteres. */
   --gutter: clamp(1rem, 3vw, 3rem); /* respiro lateral: 16px no celular, até 48px */
   --container-max: 70rem; /* 1120px de conteúdo, sem contar o respiro lateral */
   --width-measure: 68ch;
@@ -206,8 +206,9 @@
     color: var(--text);
   }
 
-  /* Faixas da página (nav, seções, rodapé): vão de ponta a ponta da tela, e as
-     linhas entre elas também. O conteúdo de cada uma fica num .container. */
+  /* Faixas da página (nav, seções, rodapé): vão de ponta a ponta da tela, assim
+     como as linhas do cabeçalho e do rodapé. O conteúdo de cada uma fica num
+     .container. */
   .band {
     padding-block: 2.25rem;
   }
@@ -238,8 +239,10 @@
     gap: 1rem;
   }
 
+  /* Seções sem linha divisória: a borda continua com 1px, só que transparente,
+     para manter o mesmo espaçamento vertical de antes. */
   .section {
-    border-top: 1px solid var(--border);
+    border-top: 1px solid transparent;
   }
 
   /* Prompt de terminal que abre cada seção. */
