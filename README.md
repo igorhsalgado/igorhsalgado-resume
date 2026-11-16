@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-    <b>Portfólio de Igor Hermann Salgado, desenvolvedor fullstack (.NET e Angular; Go, Java e PostgreSQL nos projetos). Site de uma página feito só com HTML, CSS e JavaScript, escritos à mão, sem build e sem dependências.</b>
+    <b>Portfólio de Igor Hermann Salgado, desenvolvedor fullstack (.NET e Angular; Go, Java e PostgreSQL nos projetos). Site de uma página feito só com HTML e CSS, escritos à mão, sem build e sem dependências.</b>
 </p>
 
 <p align="center">
@@ -20,13 +20,12 @@
 - Uma página só: navegação, topo, Sobre, Projetos, Experiência, Stack, GitHub e Contato, cada seção aberta por um prompt de terminal (`$ cat sobre.md`, `$ ls ./projetos`...).
 - Tema escuro com destaque âmbar (no `$` dos prompts, nos links e no botão principal). Fontes IBM Plex Sans e IBM Plex Mono, servidas pelo próprio site.
 - O conteúdo ocupa toda a largura da tela, com respiro lateral de 16px no celular até 48px; texto corrido nunca passa de ~75 caracteres por linha.
-- A página funciona inteira sem JavaScript. O `script.js` só acrescenta extras (veja abaixo).
+- Sem JavaScript: tudo funciona só com HTML e CSS (links, âncoras da navegação e rolagem suave).
 
 <h2 id="tech">💻 Tecnologias</h2>
 
 - HTML semântico
 - CSS puro (camadas `@layer`, grid e flexbox, sem frameworks)
-- JavaScript puro (sem bibliotecas, sem módulos)
 - GitHub Actions + GitHub Pages
 
 <h2 id="started">🚀 Como abrir</h2>
@@ -46,16 +45,6 @@ Os dados vindos do GitHub (data do último push e estrelas dos cards, linguagens
 
 A versão anterior do site gerava a página com React e buscava esses dados a cada build. Essa automação saiu nesta versão e deve voltar depois; o código antigo continua no histórico do git.
 
-<h3>O que o JavaScript faz</h3>
-
-`site/script.js` tem três extras pequenos, todos opcionais:
-
-- destaca na navegação a seção que está na tela, usando `IntersectionObserver`;
-- mostra o botão "copiar e-mail" no Contato, com o aviso "copiado!";
-- mostra um botão flutuante "↑ topo" depois de rolar uma tela e faz a volta ao topo com rolagem suave (desligada para quem prefere menos movimento).
-
-Sem JavaScript, os botões extras não aparecem e o resto da página fica igual; o link "↑ topo" do rodapé continua funcionando.
-
 <h3>Deploy</h3>
 
 O workflow `.github/workflows/deploy.yml` publica a pasta `site/` no GitHub Pages como ela está, sem build:
@@ -72,7 +61,6 @@ Configuração necessária (uma vez só): **Settings → Pages → Build and dep
 ```text
 site/index.html     a página inteira (todo o conteúdo está aqui)
 site/style.css      estilos (cores, tipografia e layout)
-site/script.js      extras: navegação ativa, copiar e-mail e voltar ao topo
 site/favicon.svg    ícone da aba
 site/img/           foto (avatar do GitHub em 144 e 288 px)
 site/fonts/         IBM Plex Sans e Mono em woff2, com a licença (OFL.txt)

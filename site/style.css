@@ -306,7 +306,7 @@
   }
 
   /* Cabeçalho e navegação. */
-  /* O cabeçalho fica preso no topo, para a navegação mostrar a seção atual. */
+  /* O cabeçalho fica preso no topo, para a navegação ficar sempre à mão. */
   .site-header {
     position: sticky;
     top: 0;
@@ -349,12 +349,6 @@
   .nav-link {
     color: var(--text-muted);
     text-decoration-line: none;
-  }
-  /* Seção visível no momento (marcada pelo script.js). */
-  .nav-link.is-active {
-    color: var(--text);
-    text-decoration-line: underline;
-    text-decoration-color: var(--accent);
   }
   .nav-sep {
     color: var(--border);
@@ -745,21 +739,6 @@
     align-items: center;
     gap: 0.75rem;
   }
-  /* Aviso "copiado!" ao lado do botão. */
-  .copy-status {
-    color: var(--text-muted);
-    font-size: var(--text-xs);
-    line-height: var(--leading-xs);
-  }
-
-  /* Botão flutuante de voltar ao topo (aparece depois de rolar). */
-  .to-top {
-    position: fixed;
-    right: max(var(--gutter), env(safe-area-inset-right, 0px));
-    bottom: 1rem;
-    z-index: 5;
-  }
-
   /* Rodapé. */
   .site-footer {
     border-top: 1px solid var(--border);
@@ -785,11 +764,6 @@
 }
 
 @layer utilities {
-  /* Elementos com o atributo hidden somem, mesmo que a classe defina display. */
-  [hidden] {
-    display: none !important;
-  }
-
   /* Visível só para leitores de tela. */
   .sr-only {
     position: absolute;
